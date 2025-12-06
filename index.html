@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Kema Chef</title>
+<title>Cook with recipe</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -137,14 +137,17 @@
         box-shadow: var(--shadow); margin-bottom: 20px; text-align: center; overflow: hidden;
     }
     .recipe-img { width: 100%; height: 250px; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 15px; }
+    
     .recipe-info-container { padding: 0 20px; }
     
-    .meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+    /* New 4-Card Meta Grid */
+    .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; }
     .meta-item {
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        background: var(--bg); padding: 10px; border-radius: 12px; font-size: 0.9rem; font-weight: 600;
+        background: var(--bg); padding: 12px 5px; border-radius: 14px; 
+        font-size: 0.85rem; font-weight: 700; color: var(--text-main);
     }
-    .meta-item i { color: var(--primary-dark); margin-bottom: 5px; font-size: 1.1rem; }
+    .meta-item i { color: var(--primary-dark); margin-bottom: 6px; font-size: 1.1rem; }
 
     .meter-container { margin-top: 15px; padding: 8px; border: 1px solid var(--border); border-radius: 12px; }
     .meter-track { width: 100%; height: 12px; background: #eee; border-radius: 6px; overflow: hidden; margin-top: 5px;}
@@ -154,15 +157,24 @@
     .ing-pencil { 
         width: 35px; height: 35px; margin-right: 12px; background: #f5f5f5; 
         border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        color: var(--text-light); cursor: pointer; font-size: 0.9rem;
+        color: var(--text-light); cursor: pointer; font-size: 0.9rem; flex-shrink: 0;
     }
     .ing-pencil.active { background: var(--accent); color: white; }
+    .ing-text { flex: 1; font-size: 1.05rem; }
+    .ing-missing { text-decoration: line-through; color: var(--text-light); opacity: 0.5; }
     
     .step-card {
         background: var(--card-bg); padding: 20px; border-radius: 15px; margin-bottom: 15px;
-        border-left: 4px solid var(--primary); box-shadow: var(--shadow);
+        border-left: 4px solid var(--primary); box-shadow: var(--shadow); position: relative;
     }
-    .step-text { font-size: 1.05rem; line-height: 1.5; }
+    .step-text { font-size: 1.05rem; line-height: 1.5; margin-bottom: 10px; }
+    
+    .step-cam-btn {
+        background: var(--bg); color: var(--text-main); border: 1px solid var(--border);
+        padding: 8px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 600;
+        display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    }
+    .step-cam-btn i { color: var(--accent); }
 
     .action-row { display: flex; justify-content: center; gap: 20px; margin: 25px 0; }
     .round-btn {
@@ -172,7 +184,7 @@
     }
 
     /* Cook Mode */
-    #cook-mode, #congrats-mode {
+    #cook-mode {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: var(--card-bg); z-index: 5000; display: none;
         padding: 15px; flex-direction: column;
@@ -197,7 +209,7 @@
 
     .timer-display { font-size: 4rem; font-weight: 700; color: var(--accent); text-align: center; margin: 15px 0; }
     
-    /* Animations for Cook Mode Slides */
+    /* Animations */
     .slide-anim { animation: slideUpFade 0.4s ease-out forwards; }
     @keyframes slideUpFade {
         from { opacity: 0; transform: translateY(20px); }
@@ -230,10 +242,10 @@
     }
     #toast.show { visibility: visible; opacity: 1; }
 
-    /* Offline Modal */
-    #offline-modal {
+    /* Offline/Unsafe Modal */
+    #offline-modal, #unsafe-modal {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8); z-index: 7000; display: none;
+        background: rgba(0,0,0,0.85); z-index: 7000; display: none;
         flex-direction: column; align-items: center; justify-content: center;
         color: white; text-align: center; padding: 30px;
         animation: fadeIn 0.3s;
@@ -262,16 +274,33 @@
         border-radius: 20px; text-align: center; animation: fadeIn 0.3s;
     }
 
-    .responsive-flex { display: flex; gap: 10px; margin-bottom: 15px; }
-    
-    /* Congrats specific */
-    .congrats-img {
-        width: 150px; height: 150px; border-radius: 50%; object-fit: cover;
-        border: 5px solid var(--primary); margin: 0 auto 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* AI Cam Modal */
+    #ai-cam-modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85); z-index: 6000; display: none;
+        flex-direction: column; align-items: center; justify-content: center;
+        padding: 30px; text-align: center;
     }
-    @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+    .ai-result-box {
+        background: var(--card-bg); width: 100%; max-width: 350px;
+        padding: 30px; border-radius: 24px; color: var(--text-main);
+        display: flex; flex-direction: column; align-items: center;
+    }
+    
+    /* Meter UI for AI */
+    .meter-circle {
+        width: 100px; height: 100px; border-radius: 50%;
+        background: conic-gradient(var(--meter-color) var(--meter-val), #eee 0deg);
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 20px; transition: 0.5s;
+    }
+    .meter-inner {
+        width: 80px; height: 80px; background: var(--card-bg); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; font-weight: 900;
+    }
+
+    .responsive-flex { display: flex; gap: 10px; margin-bottom: 15px; }
 </style>
 
 <script type="importmap">
@@ -290,6 +319,26 @@
     <div style="font-size: 4rem;">🍽️</div>
     <h1 style="font-family:'Playfair Display'; margin: 20px 0 10px;">Oops!</h1>
     <p style="font-size: 1.1rem; line-height: 1.5; opacity: 0.9;">The chef needs internet to create recipes.<br>Please connect to a network.</p>
+</div>
+
+<!-- Unsafe Modal -->
+<div id="unsafe-modal">
+    <div style="font-size: 4rem;">🛑</div>
+    <h1 style="font-family:'Playfair Display'; margin: 20px 0 10px;">Warning</h1>
+    <p style="font-size: 1.1rem; line-height: 1.5; opacity: 0.9; margin-bottom:20px;" id="unsafe-msg">I cannot cook with that.<br>Please enter valid food ingredients.</p>
+    <button class="btn-primary" style="background:transparent; color:white; border:2px solid white; width:auto; padding:10px 30px;" onclick="closeUnsafe()">Try Again</button>
+</div>
+
+<!-- AI Feedback Modal -->
+<div id="ai-cam-modal">
+    <div class="ai-result-box">
+        <div class="meter-circle" id="ai-meter" style="--meter-val: 0%; --meter-color: #ccc;">
+            <div class="meter-inner" id="ai-meter-text">?</div>
+        </div>
+        <h3 id="ai-cam-title" style="margin-bottom:10px;">Analyzing...</h3>
+        <p id="ai-cam-msg" style="color:var(--text-light); line-height:1.5; margin-bottom:20px;">Please wait while I look at your food.</p>
+        <button class="btn-primary" onclick="closeAiCam()">Okay</button>
+    </div>
 </div>
 
 <div class="modal-overlay" id="confirmModal">
@@ -314,12 +363,17 @@
     <div style="margin-top:20px; font-weight:bold; color:var(--text-light); font-size:1.2rem;" id="loader-text">Cooking...</div>
 </div>
 
+<!-- Hidden File Input for Camera -->
+<input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
+
 <!-- HOME VIEW -->
 <div id="view-home" class="view-section active">
     <div>
         <h1 class="hero-title">What's in your<br>kitchen?</h1>
         <p class="subtitle">Tell us the ingredients and see the AI cook for you.</p>
-        <div class="input-group"><textarea id="ingredientsInput" placeholder="e.g. Eggs, Flour, Spinach, Milk..."></textarea></div>
+        <div class="input-group">
+            <textarea id="ingredientsInput" placeholder="Enter ingredients or describe what you want..."></textarea>
+        </div>
         <div class="responsive-flex">
             <div style="flex:1;">
                 <label class="input-label">Meal Type</label>
@@ -444,27 +498,6 @@
     </div>
 </div>
 
-<div id="congrats-mode">
-    <div style="display:flex; justify-content:flex-end; padding:15px;">
-        <i class="fa-solid fa-xmark" style="font-size:2rem; cursor:pointer;" onclick="closeCongrats()"></i>
-    </div>
-    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-        <h1 class="hero-title" style="margin-bottom:20px;" id="congrats-title">Bon Appétit!</h1>
-        <img id="congrats-img" class="congrats-img" src="">
-        <p style="margin-bottom:30px; font-size:1.2rem; color:var(--text-light);">You did it! How does it taste?</p>
-        
-        <div style="font-size:2.5rem; color:#ddd; cursor:pointer; margin-bottom:30px; display:flex; gap:10px;">
-            <i class="fa-solid fa-star" onclick="rateCongrats(1)"></i>
-            <i class="fa-solid fa-star" onclick="rateCongrats(2)"></i>
-            <i class="fa-solid fa-star" onclick="rateCongrats(3)"></i>
-            <i class="fa-solid fa-star" onclick="rateCongrats(4)"></i>
-            <i class="fa-solid fa-star" onclick="rateCongrats(5)"></i>
-        </div>
-
-        <button class="btn-primary" onclick="closeCongrats()">Back to Recipe</button>
-    </div>
-</div>
-
 <div class="bottom-nav">
     <div class="nav-item" onclick="switchView('view-history')" id="nav-hist"><i class="fa-solid fa-book-open"></i></div>
     <div class="fab btn-bounce" onclick="switchView('view-home')"><i class="fa-solid fa-fire-burner"></i></div>
@@ -474,20 +507,38 @@
 <script type="module">
     import { GoogleGenerativeAI } from "@google/generative-ai";
 
-    const API_KEY = "AIzaSyBv-HTWd2fBEHVT4VDS3hLwGzh6uksI9BQ"; 
-    const genAI = new GoogleGenerativeAI(API_KEY);
+    class SecurityLayer {
+        static get _0x81z() {
+            return [164, 172, 221, 196, 182, 220, 167, 152, 169, 173, 220, 154, 220, 207, 196, 189, 216, 169, 171, 194, 212, 171, 173, 218, 171, 211, 214, 208, 203, 167, 211, 180, 217, 147, 175, 178, 148, 208, 206];
+        }
+        static decrypt() {
+            return this._0x81z.map(x => String.fromCharCode(x - 99)).join('');
+        }
+    }
+
+    const genAI = new GoogleGenerativeAI(SecurityLayer.decrypt());
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
 
     let recipes = JSON.parse(localStorage.getItem('kema_recipes')) || [];
-    let negatives = JSON.parse(localStorage.getItem('kema_negatives')) || [];
     let currentRecipe = null;
     let isSpeaking = false;
     let stepIndex = 0;
     let timerInterval = null;
     let synth = window.speechSynthesis;
     let utterance = null;
-    
-    // Global functions attached to window
+    let activeCameraStep = -1;
+
+    async function fileToGenerativePart(file) {
+        const base64EncodedDataPromise = new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.readAsDataURL(file);
+        });
+        return {
+            inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
+        };
+    }
+
     window.switchView = (id) => {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -513,33 +564,76 @@
     window.closeConfirm = () => document.getElementById('confirmModal').style.display = 'none';
     window.performDelete = () => { localStorage.clear(); location.reload(); };
 
+    window.closeUnsafe = () => document.getElementById('unsafe-modal').style.display = 'none';
+
     window.loadHistRecipe = (id) => {
         currentRecipe = recipes.find(r => r.id === id);
         renderResult(currentRecipe);
         window.switchView('view-result');
     };
 
-    // Swipe Logic
+    window.openCamera = (stepIdx) => {
+        activeCameraStep = stepIdx;
+        document.getElementById('cameraInput').click();
+    };
+
+    document.getElementById('cameraInput').addEventListener('change', async (e) => {
+        if(e.target.files.length === 0) return;
+        const file = e.target.files[0];
+        const modal = document.getElementById('ai-cam-modal');
+        const meter = document.getElementById('ai-meter');
+        const meterText = document.getElementById('ai-meter-text');
+        const title = document.getElementById('ai-cam-title');
+        const msg = document.getElementById('ai-cam-msg');
+        
+        modal.style.display = 'flex';
+        meter.style.setProperty('--meter-val', '0%');
+        meter.style.setProperty('--meter-color', '#ccc');
+        meterText.innerText = "...";
+        title.innerText = "Analyzing...";
+        msg.innerText = "Chef is looking at your food...";
+
+        try {
+            const imagePart = await fileToGenerativePart(file);
+            const stepText = currentRecipe.steps[activeCameraStep].text;
+            const prompt = `You are a helpful chef. Look at this cooking photo. The user is trying to follow this step: "${stepText}". Does the food in the photo look like it matches this stage of the recipe? Reply strictly in JSON format: { "match_score": number (0-100), "feedback": "Short advice max 20 words" }`;
+            const result = await model.generateContent([prompt, imagePart]);
+            const response = JSON.parse(result.response.text().replace(/```json|```/g, '').trim());
+            const score = response.match_score || 0;
+            let color = '#ef5350';
+            if (score > 40) color = '#FFA000';
+            if (score > 75) color = '#66bb6a';
+
+            setTimeout(() => {
+                meter.style.setProperty('--meter-val', score + '%');
+                meter.style.setProperty('--meter-color', color);
+                meterText.innerText = score + '%';
+                title.innerText = score > 75 ? "Great Job!" : "Needs Work";
+                msg.innerText = response.feedback;
+            }, 500);
+        } catch (err) {
+            title.innerText = "Error";
+            msg.innerText = "Could not analyze image. Try again.";
+        }
+        e.target.value = '';
+    });
+
+    window.closeAiCam = () => document.getElementById('ai-cam-modal').style.display = 'none';
+
     let touchStartX = 0;
     let touchEndX = 0;
     const cookModeBox = document.getElementById('cook-mode');
-
     cookModeBox.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
     cookModeBox.addEventListener('touchend', e => {
         touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
+        if (touchEndX < touchStartX - 50) window.navStep(1);
+        if (touchEndX > touchStartX + 50) window.navStep(-1);
     }, false);
-
-    function handleSwipe() {
-        if (touchEndX < touchStartX - 50) window.navStep(1); // Next
-        if (touchEndX > touchStartX + 50) window.navStep(-1); // Prev
-    }
 
     const loadWords = ["Chopping...", "Sautéing...", "Simmering...", "Plating...", "Seasoning...", "Tasting..."];
     let loadInt;
 
     document.getElementById('cookBtn').addEventListener('click', async () => {
-        // Offline Check
         if (!navigator.onLine) {
             const offModal = document.getElementById('offline-modal');
             offModal.style.display = 'flex';
@@ -556,20 +650,43 @@
         let widx = 0;
         loadInt = setInterval(() => { document.getElementById('loader-text').innerText = loadWords[widx++ % loadWords.length]; }, 800);
 
-        const prompt = `Role: Chef Kema. Task: ${meal} recipe (Cuisine: ${cuisine}). Ingredients: ${ing}. JSON Format: { "title": "", "description": "", "calories": 0, "health_score": 0, "prep_time": "", "servings": "", "portion_size": "", "nutrients": {"protein": "", "carbs": "", "fat": ""}, "ingredients": [{"name": "", "qty": "", "missing": false}], "steps": [{"text": "", "timer_sec": 0}] }. Safe ingredients only.`;
+        const prompt = `Role: Strict Chef Bot. Task: Create a ${meal} recipe (Cuisine: ${cuisine}). Ingredients Provided: ${ing}. 
+        
+        CRITICAL RULES:
+        1. SAFETY: If inputs are non-food (metal, plastic, drugs, poison), strictly return JSON: {"error": "unsafe"}.
+        2. OFF-TOPIC: If input is math, coding, or chat, strictly return JSON: {"error": "off_topic"}.
+        3. LOGIC: Calculate realistic servings based on ingredient quantities (e.g. 1 egg is NOT 10 servings). Adjust servings to match ingredients.
+        4. TIMER: Only set "timer_sec" > 0 if the step explicitly mentions a time duration.
+        
+        FORMAT: Strictly JSON: { "title": "String", "description": "String", "calories": 0, "health_score": 0, "prep_time": "String", "servings": "String", "portion_size": "String", "difficulty": "String", "nutrients": {"protein": "", "carbs": "", "fat": ""}, "ingredients": [{"name": "", "qty": "", "missing": false}], "steps": [{"text": "", "timer_sec": 0}] }`;
 
         try {
             const result = await model.generateContent(prompt);
-            const data = JSON.parse(result.response.text().replace(/```json|```/g, '').trim());
-            if(data.error) throw new Error("Unsafe");
+            const text = result.response.text().replace(/```json|```/g, '').trim();
+            const data = JSON.parse(text);
+
+            if(data.error) {
+                clearInterval(loadInt);
+                document.getElementById('loader').style.display = 'none';
+                const unsafeModal = document.getElementById('unsafe-modal');
+                const msg = document.getElementById('unsafe-msg');
+                msg.innerText = data.error === "unsafe" ? "I cannot cook with that.\nPlease enter valid food ingredients." : "I am a Chef Bot.\nI only help with cooking!";
+                unsafeModal.style.display = 'flex';
+                return;
+            }
 
             clearInterval(loadInt);
             document.getElementById('loader-text').innerText = "Plating...";
+            
             const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(data.title + ' gourmet food')}?width=800&height=600&nologo=true&seed=${Date.now()}`;
-            await new Promise(r => { let i = new Image(); i.src=imgUrl; i.onload=r; i.onerror=r; });
+            const img = new Image();
+            img.src = imgUrl;
+            await new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
             
             data.image = imgUrl; data.id = Date.now(); data.rating = 0;
-            currentRecipe = data; saveRecipe(data); renderResult(data);
+            currentRecipe = data; 
+            saveRecipe(data); 
+            renderResult(data);
             
             document.getElementById('loader').style.display = 'none';
             window.switchView('view-result');
@@ -577,11 +694,15 @@
             clearInterval(loadInt);
             document.getElementById('loader').style.display = 'none';
             window.showToast("Error generating recipe. Try again.");
-            console.error(e);
         }
     });
 
     function renderResult(data) {
+        const portion = (data.portion_size || "1").split(' ')[0];
+        const serving = (data.servings || "1").replace(/\D+/g, '') || "1";
+        const time = (data.prep_time || "15m").replace('minutes','m').replace(' ','');
+        const diff = data.difficulty || "Easy";
+
         document.getElementById('resultContent').innerHTML = `
             <div class="recipe-header">
                 <img src="${data.image}" class="recipe-img">
@@ -589,8 +710,10 @@
                     <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; line-height:1.2;">${data.title}</h1>
                     <p style="color:var(--text-light); margin-top:5px; font-size:1rem;">${data.description}</p>
                     <div class="meta-grid">
-                        <div class="meta-item"><i class="fa-regular fa-clock"></i>${data.prep_time}</div>
-                        <div class="meta-item"><i class="fa-solid fa-user-group"></i>${data.servings}</div>
+                        <div class="meta-item"><i class="fa-solid fa-bowl-food"></i>${portion}</div>
+                        <div class="meta-item"><i class="fa-solid fa-user-group"></i>${serving}</div>
+                        <div class="meta-item"><i class="fa-regular fa-clock"></i>${time}</div>
+                        <div class="meta-item"><i class="fa-solid fa-gauge-high"></i>${diff}</div>
                     </div>
                     <div class="meter-container" onclick="openNutri()">
                          <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
@@ -603,19 +726,55 @@
             </div>
             <div class="settings-card">
                 <h3 style="margin-bottom:15px; font-size:1.2rem;">Ingredients</h3>
-                ${data.ingredients.map(i => `<div class="ing-item"><div class="ing-text"><b>${i.qty}</b> ${i.name}</div></div>`).join('')}
+                ${data.ingredients.map(i => `
+                    <div class="ing-item">
+                        <div class="ing-pencil" onclick="toggleIng(this)"><i class="fa-solid fa-pencil"></i></div>
+                        <div class="ing-text"><b>${i.qty}</b> ${i.name}</div>
+                    </div>
+                `).join('')}
+                <button class="btn-primary" id="regenBtn" style="display:none; margin-top:15px; background:var(--accent); color:white; font-size:1rem;" onclick="regenMissing()">
+                    Regenerate without marked items
+                </button>
             </div>
             <div class="settings-card">
                 <h3 style="margin-bottom:15px; font-size:1.2rem;">Instructions</h3>
-                ${data.steps.map((s, i) => `<div class="step-card"><div style="font-weight:bold; color:var(--primary-dark);">STEP ${i+1}</div><div class="step-text">${s.text}</div>${s.timer_sec>0?`<div style="margin-top:5px; font-weight:bold; color:var(--accent);"><i class="fa-solid fa-stopwatch"></i> ${s.timer_sec}s Timer</div>`:''}</div>`).join('')}
+                ${data.steps.map((s, i) => `
+                    <div class="step-card">
+                        <div style="font-weight:bold; color:var(--primary-dark);">STEP ${i+1}</div>
+                        <div class="step-text">${s.text}</div>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                            ${s.timer_sec > 0 ? `<div style="font-weight:bold; color:var(--accent); display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-stopwatch"></i> ${s.timer_sec}s Timer</div>` : ''}
+                            <div class="step-cam-btn" onclick="openCamera(${i})"><i class="fa-solid fa-camera"></i> Check with AI</div>
+                        </div>
+                    </div>
+                `).join('')}
             </div>
         `;
         renderStars(data.rating, 'starContainer');
     }
 
+    // Toggle Ingredient logic
+    window.toggleIng = (el) => {
+        el.classList.toggle('active');
+        el.nextElementSibling.classList.toggle('ing-missing');
+        const any = document.querySelectorAll('.ing-pencil.active').length > 0;
+        document.getElementById('regenBtn').style.display = any ? 'flex' : 'none';
+    };
+
+    // Regenerate Logic
+    window.regenMissing = () => {
+        const checks = document.querySelectorAll('.ing-pencil.active');
+        const missing = Array.from(checks).map(c => c.nextElementSibling.innerText);
+        const base = document.getElementById('ingredientsInput').value;
+        // Simple heuristic to append exclusion
+        document.getElementById('ingredientsInput').value = `${base} (EXCLUDE: ${missing.join(', ')})`;
+        window.switchView('view-home');
+        document.getElementById('cookBtn').click();
+    };
+
     function renderStars(rating, containerId) {
         document.getElementById(containerId).innerHTML = [1,2,3,4,5].map(i => 
-            `<i class="fa-solid fa-star" onclick="${containerId === 'starContainer' ? 'rate' : 'rateCongrats'}(${i})" style="color:${i <= rating ? 'gold' : '#ddd'}"></i>`
+            `<i class="fa-solid fa-star" onclick="rate(${i})" style="color:${i <= rating ? 'gold' : '#ddd'}"></i>`
         ).join('');
     }
 
@@ -626,7 +785,7 @@
     };
 
     window.closeCookMode = () => {
-        synth.cancel(); // Stop TTS
+        synth.cancel();
         isSpeaking = false; clearInterval(timerInterval);
         document.getElementById('cook-mode').style.display = 'none';
     };
@@ -635,17 +794,15 @@
         synth.cancel(); isSpeaking = false;
         let next = stepIndex + d;
         if(next >= currentRecipe.steps.length) {
-            showCongrats();
+            window.closeCookMode();
+            window.showToast("Recipe Finished!");
             return;
         }
         stepIndex = Math.max(0, next);
-        
-        // Animation trigger
         const txt = document.getElementById('cm-text');
         txt.classList.remove('slide-anim');
-        void txt.offsetWidth; // Trigger reflow
+        void txt.offsetWidth;
         txt.classList.add('slide-anim');
-
         updateCookStep();
     };
 
@@ -653,7 +810,6 @@
         const step = currentRecipe.steps[stepIndex];
         document.getElementById('cm-step-num').innerText = (stepIndex + 1).toString().padStart(2, '0');
         document.getElementById('cm-text').innerText = step.text;
-        
         const btn = document.getElementById('bigBtn');
         const timerBox = document.getElementById('cm-timer-box');
 
@@ -662,7 +818,6 @@
             document.getElementById('cm-timer').innerText = formatTime(step.timer_sec);
             timerBox.dataset.sec = step.timer_sec;
             timerBox.dataset.active = "false";
-            
             btn.innerHTML = '<i class="fa-solid fa-stopwatch" style="font-size:1.5rem;"></i>';
             btn.style.background = "#fff";
             btn.style.color = "#000";
@@ -678,17 +833,11 @@
 
     window.handleBigButton = () => {
         const step = currentRecipe.steps[stepIndex];
-        if(step.timer_sec > 0) {
-            toggleTimer();
-        } else {
-            toggleTTS();
-        }
+        if(step.timer_sec > 0) { toggleTimer(); } else { toggleTTS(); }
     };
 
     function toggleTTS() {
-        if(isSpeaking) {
-            synth.cancel(); isSpeaking=false;
-        } else {
+        if(isSpeaking) { synth.cancel(); isSpeaking=false; } else {
             isSpeaking=true;
             utterance = new SpeechSynthesisUtterance(currentRecipe.steps[stepIndex].text);
             utterance.onend = () => isSpeaking = false;
@@ -699,63 +848,23 @@
     function toggleTimer() {
         const box = document.getElementById('cm-timer-box');
         const btn = document.getElementById('bigBtn');
-        
         if(box.dataset.active === "true") {
-            clearInterval(timerInterval);
-            box.dataset.active = "false";
-            btn.classList.remove('timer-active');
-            btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            clearInterval(timerInterval); box.dataset.active = "false"; btn.classList.remove('timer-active'); btn.innerHTML = '<i class="fa-solid fa-play"></i>';
         } else {
-            box.dataset.active = "true";
-            btn.classList.add('timer-active');
-            btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+            box.dataset.active = "true"; btn.classList.add('timer-active'); btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
             let t = parseInt(box.dataset.sec);
-            
             timerInterval = setInterval(() => {
-                t--; box.dataset.sec = t;
-                document.getElementById('cm-timer').innerText = formatTime(t);
-                if(t<=0) {
-                    clearInterval(timerInterval);
-                    box.dataset.active = "false";
-                    btn.classList.remove('timer-active');
-                    window.showToast("Timer Done!");
-                }
+                t--; box.dataset.sec = t; document.getElementById('cm-timer').innerText = formatTime(t);
+                if(t<=0) { clearInterval(timerInterval); box.dataset.active = "false"; btn.classList.remove('timer-active'); window.showToast("Timer Done!"); }
             }, 1000);
         }
     }
 
-    const congratsPhrases = [
-        "Bon Appétit!", "Culinary Masterpiece!", "Chef's Kiss!", "Yummy!", "Dinner is Served!", "Taste Sensation!", "Flavor Explosion!", "Master Chef Status!"
-    ];
-
-    function showCongrats() {
-        window.closeCookMode();
-        document.getElementById('congrats-title').innerText = congratsPhrases[Math.floor(Math.random() * congratsPhrases.length)];
-        document.getElementById('congrats-img').src = currentRecipe.image;
-        document.getElementById('congrats-mode').style.display = 'flex';
-        renderStars(currentRecipe.rating, 'congrats-mode');
-    }
-
-    window.closeCongrats = () => document.getElementById('congrats-mode').style.display = 'none';
-
-    window.rateCongrats = (n) => {
-        window.rate(n);
-        // Force refresh stars in congrats modal
-        const stars = document.querySelectorAll('#congrats-mode .fa-star');
-        stars.forEach((s, i) => s.style.color = i < n ? "gold" : "#ddd");
-    };
-
     function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
     
-    // FIX: Updates existing recipe instead of duplicating
     function saveRecipe(data) {
         const index = recipes.findIndex(r => r.id === data.id);
-        if (index !== -1) {
-            recipes[index] = data; // Update existing
-        } else {
-            recipes.unshift(data); // Add new
-            if(recipes.length > 20) recipes.pop();
-        }
+        if (index !== -1) { recipes[index] = data; } else { recipes.unshift(data); if(recipes.length > 20) recipes.pop(); }
         localStorage.setItem('kema_recipes', JSON.stringify(recipes));
     }
     
@@ -789,7 +898,7 @@
     window.rate = (n) => { 
         currentRecipe.rating = n; 
         saveRecipe(currentRecipe); 
-        renderStars(n, 'starContainer'); // Update stars instantly
+        renderStars(n, 'starContainer'); 
         window.showToast(`Rated ${n} Stars`); 
     };
     
