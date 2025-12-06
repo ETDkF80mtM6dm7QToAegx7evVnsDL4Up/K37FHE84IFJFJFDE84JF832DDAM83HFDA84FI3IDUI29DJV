@@ -171,7 +171,7 @@
         display: flex; align-items: center; justify-content: center;
     }
 
-    /* Cook Mode & Congrats */
+    /* Cook Mode */
     #cook-mode, #congrats-mode {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: var(--card-bg); z-index: 5000; display: none;
@@ -197,6 +197,13 @@
 
     .timer-display { font-size: 4rem; font-weight: 700; color: var(--accent); text-align: center; margin: 15px 0; }
     
+    /* Animations for Cook Mode Slides */
+    .slide-anim { animation: slideUpFade 0.4s ease-out forwards; }
+    @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     .swipe-text {
         color: var(--text-light); font-size: 0.9rem; margin-top: 15px; opacity: 0.7;
         display: flex; align-items: center; gap: 10px;
@@ -222,6 +229,15 @@
         transform: translateX(-50%); font-size: 0.9rem; opacity: 0; transition: opacity 0.3s;
     }
     #toast.show { visibility: visible; opacity: 1; }
+
+    /* Offline Modal */
+    #offline-modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); z-index: 7000; display: none;
+        flex-direction: column; align-items: center; justify-content: center;
+        color: white; text-align: center; padding: 30px;
+        animation: fadeIn 0.3s;
+    }
 
     .bottom-nav {
         position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height); background: var(--nav-bg);
@@ -268,6 +284,13 @@
 </header>
 
 <div id="toast">Message</div>
+
+<!-- Offline Modal -->
+<div id="offline-modal">
+    <div style="font-size: 4rem;">🍽️</div>
+    <h1 style="font-family:'Playfair Display'; margin: 20px 0 10px;">Oops!</h1>
+    <p style="font-size: 1.1rem; line-height: 1.5; opacity: 0.9;">The chef needs internet to create recipes.<br>Please connect to a network.</p>
+</div>
 
 <div class="modal-overlay" id="confirmModal">
     <div class="modal-box">
@@ -377,13 +400,7 @@
     </div>
     <div class="settings-card" style="text-align:center;">
         <p style="font-weight:bold; margin-bottom:10px; font-size:1rem;">Rate Recipe</p>
-        <div style="font-size:2rem; color:#ddd; cursor:pointer; margin-bottom:15px;" id="starContainer">
-            <i class="fa-solid fa-star" onclick="rate(1)"></i>
-            <i class="fa-solid fa-star" onclick="rate(2)"></i>
-            <i class="fa-solid fa-star" onclick="rate(3)"></i>
-            <i class="fa-solid fa-star" onclick="rate(4)"></i>
-            <i class="fa-solid fa-star" onclick="rate(5)"></i>
-        </div>
+        <div style="font-size:2rem; color:#ddd; cursor:pointer; margin-bottom:15px;" id="starContainer"></div>
         <div style="display:flex; justify-content:center; gap:30px;">
             <i class="fa-solid fa-thumbs-up btn-bounce" style="font-size:1.8rem; color:green;" onclick="thumbsUp()"></i>
             <i class="fa-solid fa-thumbs-down btn-bounce" style="font-size:1.8rem; color:red;" onclick="thumbsDown()"></i>
@@ -433,7 +450,7 @@
         <i class="fa-solid fa-xmark" style="font-size:2rem; cursor:pointer;" onclick="closeCongrats()"></i>
     </div>
     <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-        <h1 class="hero-title" style="margin-bottom:20px;">Bon Appétit!</h1>
+        <h1 class="hero-title" style="margin-bottom:20px;" id="congrats-title">Bon Appétit!</h1>
         <img id="congrats-img" class="congrats-img" src="">
         <p style="margin-bottom:30px; font-size:1.2rem; color:var(--text-light);">You did it! How does it taste?</p>
         
@@ -460,7 +477,8 @@
 
     const API_KEY = "AIzaSyBv-HTWd2fBEHVT4VDS3hLwGzh6uksI9BQ"; 
     const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
+    // FIX: Changed model to valid gemini-1.5-flash
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
 
     let recipes = JSON.parse(localStorage.getItem('kema_recipes')) || [];
     let negatives = JSON.parse(localStorage.getItem('kema_negatives')) || [];
@@ -468,9 +486,10 @@
     let isSpeaking = false;
     let stepIndex = 0;
     let timerInterval = null;
-    let audioPlayer = new Audio();
+    let synth = window.speechSynthesis;
+    let utterance = null;
     
-    // Global functions attached to window to fix ReferenceErrors
+    // Global functions attached to window
     window.switchView = (id) => {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -522,6 +541,14 @@
     let loadInt;
 
     document.getElementById('cookBtn').addEventListener('click', async () => {
+        // Offline Check
+        if (!navigator.onLine) {
+            const offModal = document.getElementById('offline-modal');
+            offModal.style.display = 'flex';
+            setTimeout(() => { offModal.style.display = 'none'; }, 3500);
+            return;
+        }
+
         const ing = document.getElementById('ingredientsInput').value.trim();
         if(!ing) return window.showToast("Please enter ingredients!");
         const meal = document.getElementById('mealType').value;
@@ -551,7 +578,8 @@
         } catch (e) {
             clearInterval(loadInt);
             document.getElementById('loader').style.display = 'none';
-            window.showToast("Error generating recipe.");
+            window.showToast("Error generating recipe. Try again.");
+            console.error(e);
         }
     });
 
@@ -584,7 +612,13 @@
                 ${data.steps.map((s, i) => `<div class="step-card"><div style="font-weight:bold; color:var(--primary-dark);">STEP ${i+1}</div><div class="step-text">${s.text}</div>${s.timer_sec>0?`<div style="margin-top:5px; font-weight:bold; color:var(--accent);"><i class="fa-solid fa-stopwatch"></i> ${s.timer_sec}s Timer</div>`:''}</div>`).join('')}
             </div>
         `;
-        document.getElementById('starContainer').innerHTML = [1,2,3,4,5].map(i => `<i class="fa-solid fa-star" onclick="rate(${i})" style="color:${i<=data.rating?'gold':'#ddd'}"></i>`).join('');
+        renderStars(data.rating, 'starContainer');
+    }
+
+    function renderStars(rating, containerId) {
+        document.getElementById(containerId).innerHTML = [1,2,3,4,5].map(i => 
+            `<i class="fa-solid fa-star" onclick="${containerId === 'starContainer' ? 'rate' : 'rateCongrats'}(${i})" style="color:${i <= rating ? 'gold' : '#ddd'}"></i>`
+        ).join('');
     }
 
     window.startCookMode = () => {
@@ -594,19 +628,26 @@
     };
 
     window.closeCookMode = () => {
-        audioPlayer.pause();
+        synth.cancel(); // Stop TTS
         isSpeaking = false; clearInterval(timerInterval);
         document.getElementById('cook-mode').style.display = 'none';
     };
 
     window.navStep = (d) => {
-        audioPlayer.pause(); isSpeaking = false;
+        synth.cancel(); isSpeaking = false;
         let next = stepIndex + d;
         if(next >= currentRecipe.steps.length) {
             showCongrats();
             return;
         }
         stepIndex = Math.max(0, next);
+        
+        // Animation trigger
+        const txt = document.getElementById('cm-text');
+        txt.classList.remove('slide-anim');
+        void txt.offsetWidth; // Trigger reflow
+        txt.classList.add('slide-anim');
+
         updateCookStep();
     };
 
@@ -648,13 +689,12 @@
 
     function toggleTTS() {
         if(isSpeaking) {
-            audioPlayer.pause(); isSpeaking=false;
+            synth.cancel(); isSpeaking=false;
         } else {
             isSpeaking=true;
-            const text = encodeURIComponent(currentRecipe.steps[stepIndex].text);
-            audioPlayer.src = `https://api.streamelements.com/kappa/v2/speech?voice=En_US&text=${text}`;
-            audioPlayer.play();
-            audioPlayer.onended = () => isSpeaking=false;
+            utterance = new SpeechSynthesisUtterance(currentRecipe.steps[stepIndex].text);
+            utterance.onend = () => isSpeaking = false;
+            synth.speak(utterance);
         }
     }
 
@@ -686,23 +726,40 @@
         }
     }
 
+    const congratsPhrases = [
+        "Bon Appétit!", "Culinary Masterpiece!", "Chef's Kiss!", "Yummy!", "Dinner is Served!", "Taste Sensation!", "Flavor Explosion!", "Master Chef Status!"
+    ];
+
     function showCongrats() {
         window.closeCookMode();
+        document.getElementById('congrats-title').innerText = congratsPhrases[Math.floor(Math.random() * congratsPhrases.length)];
         document.getElementById('congrats-img').src = currentRecipe.image;
         document.getElementById('congrats-mode').style.display = 'flex';
-        Array.from(document.querySelectorAll('#congrats-mode .fa-star')).forEach(s=>s.style.color="#ddd");
+        renderStars(currentRecipe.rating, 'congrats-mode');
     }
 
     window.closeCongrats = () => document.getElementById('congrats-mode').style.display = 'none';
 
     window.rateCongrats = (n) => {
         window.rate(n);
+        // Force refresh stars in congrats modal
         const stars = document.querySelectorAll('#congrats-mode .fa-star');
         stars.forEach((s, i) => s.style.color = i < n ? "gold" : "#ddd");
     };
 
     function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
-    function saveRecipe(data) { recipes.unshift(data); if(recipes.length>20) recipes.pop(); localStorage.setItem('kema_recipes', JSON.stringify(recipes)); }
+    
+    // FIX: Updates existing recipe instead of duplicating
+    function saveRecipe(data) {
+        const index = recipes.findIndex(r => r.id === data.id);
+        if (index !== -1) {
+            recipes[index] = data; // Update existing
+        } else {
+            recipes.unshift(data); // Add new
+            if(recipes.length > 20) recipes.pop();
+        }
+        localStorage.setItem('kema_recipes', JSON.stringify(recipes));
+    }
     
     function renderTop3() {
         const area = document.getElementById('topRecipesArea');
@@ -731,7 +788,13 @@
         `).join('');
     }
 
-    window.rate = (n) => { currentRecipe.rating = n; saveRecipe(currentRecipe); window.showToast(`Rated ${n} Stars`); };
+    window.rate = (n) => { 
+        currentRecipe.rating = n; 
+        saveRecipe(currentRecipe); 
+        renderStars(n, 'starContainer'); // Update stars instantly
+        window.showToast(`Rated ${n} Stars`); 
+    };
+    
     window.copyRecipeText = () => { if(!currentRecipe) return; let t = `${currentRecipe.title}\n\n`; currentRecipe.ingredients.forEach(i=>t+=`- ${i.qty} ${i.name}\n`); currentRecipe.steps.forEach((s,x)=>t+=`${x+1}. ${s.text}\n`); navigator.clipboard.writeText(t).then(()=>window.showToast("Copied!")); };
     window.thumbsUp = () => window.showToast("Glad you liked it!");
     window.thumbsDown = () => window.showToast("We won't suggest this again.");
