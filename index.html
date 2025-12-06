@@ -295,8 +295,8 @@
 <div id="view-home" class="view-section active">
     <div>
         <h1 class="hero-title">What's in your<br>kitchen?</h1>
-        <p class="subtitle">Enter ingredients and let the ai cook for you!</p>
-        <div class="input-group"><textarea id="ingredientsInput" placeholder="e.g. Eggs, Flour, Spinach, Milk... or I need to bake bread with cheese"></textarea></div>
+        <p class="subtitle">Tell us the ingredients and see the AI cook for you.</p>
+        <div class="input-group"><textarea id="ingredientsInput" placeholder="e.g. Eggs, Flour, Spinach, Milk..."></textarea></div>
         <div class="responsive-flex">
             <div style="flex:1;">
                 <label class="input-label">Meal Type</label>
@@ -314,7 +314,7 @@
                 <input type="text" id="cuisineInputHome" placeholder="e.g. Italian">
             </div>
         </div>
-        <button class="btn-primary btn-bounce" id="cookBtn"><i class="fa-solid fa-fire-burner"></i> Cook</button>
+        <button class="btn-primary btn-bounce" id="cookBtn"><i class="fa-solid fa-fire-burner"></i> Cook Now</button>
     </div>
     <div class="top-recipes-wrapper" id="topRecipesArea" style="display:none;">
         <label class="input-label" style="text-align:center; margin-bottom:10px;">Recent</label>
@@ -333,20 +333,6 @@
                 <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
                 <span class="slider"></span>
             </label>
-        </div>
-    </div>
-
-    <!-- Music Selection -->
-    <div class="settings-card">
-        <div class="setting-row">
-            <label class="input-label"><i class="fa-solid fa-music"></i> Cooking Music</label>
-            <select id="musicSelect" onchange="changeMusic(this.value)">
-                <option value="0">Upbeat Pop</option>
-                <option value="1">Happy Vibes</option>
-                <option value="2">Funky Groove</option>
-                <option value="3">Summer Energy</option>
-                <option value="4">Chill Hop</option>
-            </select>
         </div>
     </div>
 
@@ -415,7 +401,7 @@
 <div id="cook-mode">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
         <h2 style="font-family:'Playfair Display',serif; font-size:1.6rem;">Cook with recipe</h2>
-        <div id="closeCookBtn" style="padding:15px; cursor:pointer;">
+        <div onclick="closeCookMode()" style="padding:15px; cursor:pointer;">
              <i class="fa-solid fa-xmark" style="font-size:2rem;"></i>
         </div>
     </div>
@@ -484,37 +470,7 @@
     let timerInterval = null;
     let audioPlayer = new Audio();
     
-    // Upbeat Music List
-    const tunes = [
-        "https://cdn.pixabay.com/audio/2023/10/24/audio_34b0754899.mp3", // Upbeat Pop
-        "https://cdn.pixabay.com/audio/2022/10/05/audio_6861212515.mp3", // Happy
-        "https://cdn.pixabay.com/audio/2023/04/13/audio_82c2196692.mp3", // Funky
-        "https://cdn.pixabay.com/audio/2022/03/10/audio_c36316279f.mp3", // Summer
-        "https://cdn.pixabay.com/audio/2022/01/18/audio_d0a13f69d2.mp3"  // Chill Hop
-    ];
-    let currentMusicIndex = parseInt(localStorage.getItem('kema_music_idx')) || 0;
-    let bgMusic = new Audio(tunes[currentMusicIndex]);
-    bgMusic.loop = true;
-    bgMusic.volume = 0.3;
-
-    // Swipe Logic
-    let touchStartX = 0;
-    let touchEndX = 0;
-    const cookModeBox = document.getElementById('cook-mode');
-
-    cookModeBox.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
-    cookModeBox.addEventListener('touchend', e => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    }, false);
-
-    function handleSwipe() {
-        if (touchEndX < touchStartX - 50) navStep(1); // Next
-        if (touchEndX > touchStartX + 50) navStep(-1); // Prev
-    }
-
-    document.getElementById('closeCookBtn').addEventListener('click', closeCookMode);
-
+    // Global functions attached to window to fix ReferenceErrors
     window.switchView = (id) => {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -530,20 +486,44 @@
         setTimeout(() => t.classList.remove("show"), 3000);
     };
 
-    // Music Settings
-    window.changeMusic = (idx) => {
-        currentMusicIndex = idx;
-        localStorage.setItem('kema_music_idx', idx);
-        bgMusic.src = tunes[idx];
+    window.toggleDarkMode = () => {
+        const isDark = document.getElementById('darkModeToggle').checked;
+        document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        localStorage.setItem('kema_dark', isDark);
     };
-    document.getElementById('musicSelect').value = currentMusicIndex;
+
+    window.openConfirm = () => document.getElementById('confirmModal').style.display = 'flex';
+    window.closeConfirm = () => document.getElementById('confirmModal').style.display = 'none';
+    window.performDelete = () => { localStorage.clear(); location.reload(); };
+
+    window.loadHistRecipe = (id) => {
+        currentRecipe = recipes.find(r => r.id === id);
+        renderResult(currentRecipe);
+        window.switchView('view-result');
+    };
+
+    // Swipe Logic
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const cookModeBox = document.getElementById('cook-mode');
+
+    cookModeBox.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
+    cookModeBox.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, false);
+
+    function handleSwipe() {
+        if (touchEndX < touchStartX - 50) window.navStep(1); // Next
+        if (touchEndX > touchStartX + 50) window.navStep(-1); // Prev
+    }
 
     const loadWords = ["Chopping...", "Sautéing...", "Simmering...", "Plating...", "Seasoning...", "Tasting..."];
     let loadInt;
 
     document.getElementById('cookBtn').addEventListener('click', async () => {
         const ing = document.getElementById('ingredientsInput').value.trim();
-        if(!ing) return showToast("Please enter ingredients!");
+        if(!ing) return window.showToast("Please enter ingredients!");
         const meal = document.getElementById('mealType').value;
         const cuisine = document.getElementById('cuisineInputHome').value || "Any";
         
@@ -567,11 +547,11 @@
             currentRecipe = data; saveRecipe(data); renderResult(data);
             
             document.getElementById('loader').style.display = 'none';
-            switchView('view-result');
+            window.switchView('view-result');
         } catch (e) {
             clearInterval(loadInt);
             document.getElementById('loader').style.display = 'none';
-            showToast("Error generating recipe.");
+            window.showToast("Error generating recipe.");
         }
     });
 
@@ -610,12 +590,11 @@
     window.startCookMode = () => {
         stepIndex = 0;
         document.getElementById('cook-mode').style.display = 'flex';
-        bgMusic.play().catch(e=>console.log(e));
         updateCookStep();
     };
 
     window.closeCookMode = () => {
-        audioPlayer.pause(); bgMusic.pause();
+        audioPlayer.pause();
         isSpeaking = false; clearInterval(timerInterval);
         document.getElementById('cook-mode').style.display = 'none';
     };
@@ -639,13 +618,11 @@
         const btn = document.getElementById('bigBtn');
         const timerBox = document.getElementById('cm-timer-box');
 
-        // Logic: If Timer Exists, Big Button = Timer. Else, Big Button = TTS.
         if(step.timer_sec > 0) {
             timerBox.style.display = 'block';
             document.getElementById('cm-timer').innerText = formatTime(step.timer_sec);
             timerBox.dataset.sec = step.timer_sec;
             timerBox.dataset.active = "false";
-            timerBox.dataset.orig = step.timer_sec;
             
             btn.innerHTML = '<i class="fa-solid fa-stopwatch" style="font-size:1.5rem;"></i>';
             btn.style.background = "#fff";
@@ -703,38 +680,64 @@
                     clearInterval(timerInterval);
                     box.dataset.active = "false";
                     btn.classList.remove('timer-active');
-                    showToast("Timer Done!");
-                    bgMusic.pause(); // Pause music for alert
-                    new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
+                    window.showToast("Timer Done!");
                 }
             }, 1000);
         }
     }
 
     function showCongrats() {
-        closeCookMode();
+        window.closeCookMode();
         document.getElementById('congrats-img').src = currentRecipe.image;
         document.getElementById('congrats-mode').style.display = 'flex';
-        // Reset stars in congrats
         Array.from(document.querySelectorAll('#congrats-mode .fa-star')).forEach(s=>s.style.color="#ddd");
     }
 
     window.closeCongrats = () => document.getElementById('congrats-mode').style.display = 'none';
 
     window.rateCongrats = (n) => {
-        rate(n);
+        window.rate(n);
         const stars = document.querySelectorAll('#congrats-mode .fa-star');
         stars.forEach((s, i) => s.style.color = i < n ? "gold" : "#ddd");
     };
 
-    // Utils
     function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
     function saveRecipe(data) { recipes.unshift(data); if(recipes.length>20) recipes.pop(); localStorage.setItem('kema_recipes', JSON.stringify(recipes)); }
-    window.rate = (n) => { currentRecipe.rating = n; saveRecipe(currentRecipe); showToast(`Rated ${n} Stars`); };
-    window.copyRecipeText = () => { if(!currentRecipe) return; let t = `${currentRecipe.title}\n\n`; currentRecipe.ingredients.forEach(i=>t+=`- ${i.qty} ${i.name}\n`); currentRecipe.steps.forEach((s,x)=>t+=`${x+1}. ${s.text}\n`); navigator.clipboard.writeText(t).then(()=>showToast("Copied!")); };
+    
+    function renderTop3() {
+        const area = document.getElementById('topRecipesArea');
+        if(!recipes.length) { area.style.display = 'none'; return; }
+        area.style.display = 'block';
+        document.getElementById('topRecipesList').innerHTML = recipes.slice(0, 3).map((r, i) => `
+            <div class="top-bubble" onclick="loadHistRecipe(${r.id})">
+                <img src="${r.image}">
+                <span>${i+1}</span>
+            </div>
+        `).join('');
+    }
 
-    // Init
+    function renderHistory() {
+        const list = document.getElementById('historyList');
+        if(!recipes.length) return list.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px;'>No recipes yet.</p>";
+        list.innerHTML = recipes.map(r => `
+            <div class="settings-card" style="display:flex; gap:15px; align-items:center;" onclick="loadHistRecipe(${r.id})">
+                <img src="${r.image}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;">
+                <div style="flex:1;">
+                    <div style="font-weight:bold; font-size:1.1rem; margin-bottom:5px;">${r.title}</div>
+                    <div style="font-size:0.85rem; color:#999;">${new Date(r.id).toLocaleDateString()}</div>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color:#ccc;"></i>
+            </div>
+        `).join('');
+    }
+
+    window.rate = (n) => { currentRecipe.rating = n; saveRecipe(currentRecipe); window.showToast(`Rated ${n} Stars`); };
+    window.copyRecipeText = () => { if(!currentRecipe) return; let t = `${currentRecipe.title}\n\n`; currentRecipe.ingredients.forEach(i=>t+=`- ${i.qty} ${i.name}\n`); currentRecipe.steps.forEach((s,x)=>t+=`${x+1}. ${s.text}\n`); navigator.clipboard.writeText(t).then(()=>window.showToast("Copied!")); };
+    window.thumbsUp = () => window.showToast("Glad you liked it!");
+    window.thumbsDown = () => window.showToast("We won't suggest this again.");
+
     window.openNutri = () => { if(currentRecipe) { const n=currentRecipe.nutrients; document.getElementById('nutriContent').innerHTML=`<div class="nutri-row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee"><span>Protein</span><b>${n.protein}</b></div><div class="nutri-row" style="display:flex;justify-content:space-between;padding:10px 0;"><span>Carbs</span><b>${n.carbs}</b></div>`; document.getElementById('nutriModal').style.display='flex'; }};
+
     const savedDark = localStorage.getItem('kema_dark') === 'true'; document.getElementById('darkModeToggle').checked = savedDark; if(savedDark) document.body.setAttribute('data-theme', 'dark');
     renderTop3();
 </script>
