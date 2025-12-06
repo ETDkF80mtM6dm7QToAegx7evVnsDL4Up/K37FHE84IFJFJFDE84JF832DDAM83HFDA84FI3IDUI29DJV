@@ -2,9 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Optimized for mobile fit: No zooming, fits width exactly -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
 <title>Kema Chef</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +10,6 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
@@ -26,9 +23,9 @@
         --text-light: #666666;
         --border: #E0E0E0;
         --shadow: 0 5px 20px rgba(0,0,0,0.05);
-        --radius: 16px; /* Slightly smaller radius for cleaner look */
+        --radius: 16px;
         --nav-bg: #FFFFFF;
-        --nav-height: 80px; /* Reduced nav height */
+        --nav-height: 80px;
     }
 
     [data-theme="dark"] {
@@ -47,19 +44,17 @@
         font-family: 'DM Sans', sans-serif;
         background-color: var(--bg);
         color: var(--text-main);
-        /* Use dvh to fit mobile screen exactly without browser bar issues */
         height: 100vh;
-        height: 100dvh; 
+        height: 100dvh;
         display: flex;
         flex-direction: column;
-        overflow: hidden; /* Prevents body scroll */
-        font-size: 15px; /* Compact base font */
+        overflow: hidden;
+        font-size: 15px;
     }
 
     .btn-bounce { transition: transform 0.1s; cursor: pointer; }
     .btn-bounce:active { transform: scale(0.96); }
     
-    /* Input Styling - 16px prevents iOS zoom */
     input, select, textarea {
         background: var(--card-bg); color: var(--text-main);
         border: 1px solid var(--border);
@@ -81,7 +76,6 @@
     .logo { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; }
     .logo span { color: var(--primary); margin-right: 10px; }
 
-    /* Main Content Area */
     .view-section {
         flex: 1; 
         width: 100%; 
@@ -89,10 +83,9 @@
         margin: 0 auto;
         display: none; 
         padding: 10px 20px calc(var(--nav-height) + 10px) 20px;
-        overflow-y: hidden; /* Default: No scroll */
+        overflow-y: hidden; 
     }
 
-    /* Exceptions: History and Result allow scrolling */
     #view-result, #view-history {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
@@ -101,34 +94,21 @@
     .view-section.active { display: flex; flex-direction: column; animation: fadeIn 0.3s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Typography */
     .hero-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; line-height: 1.1; margin-bottom: 5px; }
     .subtitle { color: var(--text-light); margin-bottom: 20px; font-size: 1rem; }
-
     .input-label { font-size: 0.85rem; font-weight: 700; color: var(--text-light); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* Compact Form Elements */
-    textarea {
-        height: 100px; 
-        padding: 14px; 
-        resize: none;
-        margin-bottom: 15px;
-    }
+    textarea { height: 100px; padding: 14px; resize: none; margin-bottom: 15px; }
     textarea:focus { border-color: var(--primary); }
-
-    select, input[type="text"] {
-        padding: 12px; 
-    }
+    select, input[type="text"] { padding: 12px; }
 
     .btn-primary {
         background: var(--primary); color: #000; border: none; width: 100%; 
-        padding: 16px; 
-        border-radius: var(--radius); font-size: 1.1rem; font-weight: 700;
+        padding: 16px; border-radius: var(--radius); font-size: 1.1rem; font-weight: 700;
         box-shadow: 0 8px 20px rgba(255, 193, 7, 0.25); margin-top: 10px;
         display: flex; align-items: center; justify-content: center; gap: 8px;
     }
 
-    /* Top Recipes - Compact Bubble */
     .top-recipes-wrapper { margin-top: auto; padding-bottom: 10px; }
     .top-recipes-list { display: flex; justify-content: center; gap: 15px; }
     .top-bubble {
@@ -142,10 +122,8 @@
         border-radius: 50%; font-weight: bold; border: 2px solid var(--card-bg);
     }
 
-    /* Settings Compact */
     .settings-card { background: var(--card-bg); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 15px; }
     .setting-row { margin-bottom: 15px; }
-    
     .switch-row { display: flex; justify-content: space-between; align-items: center; font-size: 1rem; font-weight: 500;}
     .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -154,29 +132,21 @@
     input:checked + .slider { background-color: var(--primary); }
     input:checked + .slider:before { transform: translateX(22px); }
 
-    /* Recipe Result Styling */
     .recipe-header {
         background: var(--card-bg); padding: 0 0 20px 0; border-radius: var(--radius);
         box-shadow: var(--shadow); margin-bottom: 20px; text-align: center; overflow: hidden;
     }
-    .recipe-img {
-        width: 100%; height: 250px; object-fit: cover;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 15px;
-    }
+    .recipe-img { width: 100%; height: 250px; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 15px; }
     .recipe-info-container { padding: 0 20px; }
     
-    .meta-grid {
-        display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0;
-    }
+    .meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
     .meta-item {
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         background: var(--bg); padding: 10px; border-radius: 12px; font-size: 0.9rem; font-weight: 600;
     }
     .meta-item i { color: var(--primary-dark); margin-bottom: 5px; font-size: 1.1rem; }
 
-    .meter-container {
-        margin-top: 15px; padding: 8px; border: 1px solid var(--border); border-radius: 12px;
-    }
+    .meter-container { margin-top: 15px; padding: 8px; border: 1px solid var(--border); border-radius: 12px; }
     .meter-track { width: 100%; height: 12px; background: #eee; border-radius: 6px; overflow: hidden; margin-top: 5px;}
     .meter-fill { height: 100%; background: linear-gradient(90deg, #81C784, #FFB74D, #E57373); }
 
@@ -204,21 +174,31 @@
     /* Cook Mode */
     #cook-mode {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: var(--card-bg); z-index: 3000; display: none;
+        background: var(--card-bg); z-index: 5000; display: none;
         padding: 15px; flex-direction: column;
     }
     .video-controls {
-        display: flex; align-items: center; justify-content: space-between;
-        background: #222; padding: 15px 30px; border-radius: 50px;
-        color: white; margin-top: auto; margin-bottom: 10px;
+        display: flex; align-items: center; justify-content: center;
+        padding-bottom: 30px; margin-top: auto;
     }
     .play-big { 
-        width: 65px; height: 65px; background: var(--primary); border-radius: 50%; 
-        color: black; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+        width: 80px; height: 80px; background: var(--primary); border-radius: 50%; 
+        color: black; display: flex; align-items: center; justify-content: center; font-size: 2rem;
+        box-shadow: 0 10px 30px rgba(255, 193, 7, 0.4); border: 4px solid #fff;
     }
     .timer-display { font-size: 4rem; font-weight: 700; color: var(--accent); text-align: center; margin: 15px 0; }
+    
+    .swipe-hint {
+        position: absolute; top: 50%; right: 20px; transform: translateY(-50%);
+        color: var(--primary); font-size: 2rem; opacity: 0; pointer-events: none;
+    }
+    .swipe-hint.animate { animation: swipeRight 2s infinite; }
+    @keyframes swipeRight { 
+        0% { opacity: 0; transform: translate(0, -50%); } 
+        50% { opacity: 1; transform: translate(10px, -50%); } 
+        100% { opacity: 0; transform: translate(20px, -50%); } 
+    }
 
-    /* Loader & Toast */
     #loader {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: var(--bg); z-index: 2000; display: none;
@@ -234,7 +214,6 @@
     }
     #toast.show { visibility: visible; opacity: 1; }
 
-    /* Nav */
     .bottom-nav {
         position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height); background: var(--nav-bg);
         display: flex; align-items: center; justify-content: space-evenly;
@@ -249,7 +228,6 @@
         transform: translateY(-25px); border: 6px solid var(--bg); box-shadow: 0 5px 15px rgba(255,193,7,0.4);
     }
 
-    /* Modals */
     .modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6);
         z-index: 3500; display: none; align-items: center; justify-content: center; backdrop-filter: blur(3px);
@@ -259,7 +237,6 @@
         border-radius: 20px; text-align: center; animation: fadeIn 0.3s;
     }
 
-    /* Helper for side-by-side inputs */
     .responsive-flex { display: flex; gap: 10px; margin-bottom: 15px; }
     .word-highlight { background-color: var(--primary); color: black; border-radius: 4px; padding: 0 4px; }
 </style>
@@ -300,10 +277,10 @@
 <div id="view-home" class="view-section active">
     <div>
         <h1 class="hero-title">What's in your<br>kitchen?</h1>
-        <p class="subtitle">Enter ingredients or tell us what you need to cook!</p>
+        <p class="subtitle">Enter ingredients, we check safety.</p>
         
         <div class="input-group">
-            <textarea id="ingredientsInput" placeholder="e.g. Eggs, Flour, Spinach, Milk.. OR I need to bake bread without yeast and an oven"></textarea>
+            <textarea id="ingredientsInput" placeholder="e.g. Eggs, Flour, Spinach, Milk..."></textarea>
         </div>
 
         <div class="responsive-flex">
@@ -384,8 +361,12 @@
     <div id="resultContent"></div>
     
     <div class="action-row">
-         <button class="round-btn btn-bounce" onclick="startCookMode()"><i class="fa-solid fa-robot"></i></button>
-         <button class="round-btn btn-bounce" onclick="downloadImage()"><i class="fa-solid fa-image"></i></button>
+         <button class="round-btn btn-bounce" onclick="startCookMode()">
+            <i class="fa-solid fa-play" style="padding-left:4px;"></i>
+         </button>
+         <button class="round-btn btn-bounce" onclick="copyRecipeText()">
+            <i class="fa-solid fa-t"></i>
+         </button>
     </div>
 
     <div class="settings-card" style="text-align:center;">
@@ -409,13 +390,16 @@
     <div id="historyList"></div>
 </div>
 
+<!-- Cook Mode -->
 <div id="cook-mode">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
         <h2 style="font-family:'Playfair Display',serif; font-size:1.6rem;">Chef Bot</h2>
-        <i class="fa-solid fa-xmark" style="font-size:2rem; cursor:pointer; padding:10px;" onclick="closeCookMode()"></i>
+        <div id="closeCookBtn" style="padding:15px; cursor:pointer;">
+             <i class="fa-solid fa-xmark" style="font-size:2rem;"></i>
+        </div>
     </div>
     
-    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 5px;">
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 5px; position:relative;">
         <div style="font-size:6rem; color:var(--text-light); font-weight:900; opacity:0.1; line-height:1;" id="cm-step-num">01</div>
         
         <div style="font-size:1.6rem; line-height:1.4; font-weight:500; margin:15px 0; max-height:45vh; overflow-y:auto;" id="cm-text">
@@ -426,12 +410,14 @@
             <div class="timer-display" id="cm-timer">00:00</div>
             <div style="color:var(--text-light); font-size:1rem;">Timer Auto-Start</div>
         </div>
+
+        <div class="swipe-hint" id="swipeHint">
+            <i class="fa-solid fa-hand-point-right"></i>
+        </div>
     </div>
 
     <div class="video-controls">
-        <button class="ctrl-btn" onclick="navStep(-1)" style="background:none; border:none; color:white; font-size:1.5rem;"><i class="fa-solid fa-backward-step"></i></button>
-        <button class="play-big btn-bounce" onclick="togglePlay()" id="playBtn"><i class="fa-solid fa-play"></i></button>
-        <button class="ctrl-btn" onclick="navStep(1)" style="background:none; border:none; color:white; font-size:1.5rem;"><i class="fa-solid fa-forward-step"></i></button>
+        <button class="play-big btn-bounce" onclick="togglePlay()" id="playBtn"><i class="fa-solid fa-play" style="margin-left:5px;"></i></button>
     </div>
 </div>
 
@@ -454,8 +440,38 @@
     let isSpeaking = false;
     let stepIndex = 0;
     let timerInterval = null;
-    let synth = window.speechSynthesis;
-    let utterance = null;
+    let audioPlayer = new Audio();
+    let bgMusic = new Audio('https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3'); // Free calm acoustic loop
+    bgMusic.loop = true;
+    bgMusic.volume = 0.2; // Low background volume
+
+    // Swipe Logic
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const cookModeBox = document.getElementById('cook-mode');
+
+    cookModeBox.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, false);
+
+    cookModeBox.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, false);
+
+    function handleSwipe() {
+        if (touchEndX < touchStartX - 50) {
+            navStep(1); // Swipe Left -> Next
+        }
+        if (touchEndX > touchStartX + 50) {
+            navStep(-1); // Swipe Right -> Prev
+        }
+    }
+
+    // Webview safe close
+    document.getElementById('closeCookBtn').addEventListener('click', () => {
+        closeCookMode();
+    });
 
     window.switchView = (id) => {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -665,20 +681,22 @@
     window.startCookMode = () => {
         stepIndex = 0;
         document.getElementById('cook-mode').style.display = 'flex';
+        bgMusic.play().catch(e => console.log("Music play blocked", e));
         updateCookStep();
     };
 
     window.closeCookMode = () => {
-        synth.cancel();
+        audioPlayer.pause();
+        bgMusic.pause();
         isSpeaking = false;
         clearInterval(timerInterval);
         document.getElementById('cook-mode').style.display = 'none';
     };
 
     window.navStep = (d) => {
-        synth.cancel();
+        audioPlayer.pause();
         isSpeaking = false;
-        document.getElementById('playBtn').innerHTML = '<i class="fa-solid fa-play"></i>';
+        document.getElementById('playBtn').innerHTML = '<i class="fa-solid fa-play" style="margin-left:5px;"></i>';
         stepIndex = Math.max(0, Math.min(stepIndex + d, currentRecipe.steps.length - 1));
         updateCookStep();
     };
@@ -686,10 +704,18 @@
     function updateCookStep() {
         const step = currentRecipe.steps[stepIndex];
         document.getElementById('cm-step-num').innerText = (stepIndex + 1).toString().padStart(2, '0');
+        document.getElementById('cm-text').innerText = step.text;
         
-        const words = step.text.split(' ');
-        document.getElementById('cm-text').innerHTML = words.map((w,i) => `<span id="w-${i}">${w}</span>`).join(' ');
-        
+        // Hint Animation logic
+        const hint = document.getElementById('swipeHint');
+        if(stepIndex === 0) {
+            hint.style.opacity = '1';
+            hint.classList.add('animate');
+            setTimeout(() => { hint.style.opacity = '0'; hint.classList.remove('animate'); }, 3000);
+        } else {
+            hint.style.opacity = '0';
+        }
+
         const timerBox = document.getElementById('cm-timer-box');
         if(step.timer_sec > 0) {
             timerBox.style.display = 'block';
@@ -706,42 +732,28 @@
     window.togglePlay = () => {
         const btn = document.getElementById('playBtn');
         if(isSpeaking) {
-            synth.cancel();
+            audioPlayer.pause();
             isSpeaking = false;
-            btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            btn.innerHTML = '<i class="fa-solid fa-play" style="margin-left:5px;"></i>';
         } else {
             isSpeaking = true;
             btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
             const text = currentRecipe.steps[stepIndex].text;
-            utterance = new SpeechSynthesisUtterance(text);
             
-            utterance.onboundary = (event) => {
-                const charIndex = event.charIndex;
-                const words = text.split(' ');
-                let currentLength = 0;
-                let wordIndex = 0;
-                for(let i=0; i<words.length; i++) {
-                    if(currentLength >= charIndex) { wordIndex = i; break; }
-                    currentLength += words[i].length + 1;
-                }
-                document.querySelectorAll('#cm-text span').forEach(s => s.classList.remove('word-highlight'));
-                const span = document.getElementById(`w-${wordIndex}`);
-                if(span) span.classList.add('word-highlight');
-            };
+            // Using StreamElements Free TTS API (No Key Required, returns MP3)
+            const safeText = encodeURIComponent(text);
+            audioPlayer.src = `https://api.streamelements.com/kappa/v2/speech?voice=En_US&text=${safeText}`;
+            audioPlayer.play();
 
-            utterance.onend = () => {
+            audioPlayer.onended = () => {
                 isSpeaking = false;
-                btn.innerHTML = '<i class="fa-solid fa-play"></i>';
-                document.querySelectorAll('#cm-text span').forEach(s => s.classList.remove('word-highlight'));
-                
+                btn.innerHTML = '<i class="fa-solid fa-play" style="margin-left:5px;"></i>';
                 // Auto Start Timer if exists
                 const timerBox = document.getElementById('cm-timer-box');
                 if(timerBox.dataset.sec > 0) {
                     startTimer();
                 }
             };
-
-            synth.speak(utterance);
         }
     };
 
@@ -828,15 +840,14 @@
     window.closeConfirm = () => document.getElementById('confirmModal').style.display = 'none';
     window.performDelete = () => { localStorage.clear(); location.reload(); };
 
-    window.downloadImage = () => {
-        showToast("Saving recipe image...");
-        const el = document.getElementById('resultContent');
-        html2canvas(el, {scale: 2, useCORS: true}).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `Kema_${currentRecipe.title}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-        });
+    window.copyRecipeText = () => {
+        if(!currentRecipe) return;
+        let text = `${currentRecipe.title}\n\nINGREDIENTS:\n`;
+        currentRecipe.ingredients.forEach(i => text += `- ${i.qty} ${i.name}\n`);
+        text += `\nINSTRUCTIONS:\n`;
+        currentRecipe.steps.forEach((s, i) => text += `${i+1}. ${s.text}\n`);
+        
+        navigator.clipboard.writeText(text).then(() => showToast("Recipe Copied!"));
     };
 
     const savedDark = localStorage.getItem('kema_dark') === 'true';
