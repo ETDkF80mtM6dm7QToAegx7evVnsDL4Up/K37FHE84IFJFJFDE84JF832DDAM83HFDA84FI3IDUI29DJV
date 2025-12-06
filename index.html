@@ -444,7 +444,6 @@
     </div>
 </div>
 
-<!-- CONGRATS SCREEN -->
 <div id="congrats-mode">
     <div style="display:flex; justify-content:flex-end; padding:15px;">
         <i class="fa-solid fa-xmark" style="font-size:2rem; cursor:pointer;" onclick="closeCongrats()"></i>
@@ -477,8 +476,7 @@
 
     const API_KEY = "AIzaSyBv-HTWd2fBEHVT4VDS3hLwGzh6uksI9BQ"; 
     const genAI = new GoogleGenerativeAI(API_KEY);
-    // FIX: Changed model to valid gemini-1.5-flash
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
 
     let recipes = JSON.parse(localStorage.getItem('kema_recipes')) || [];
     let negatives = JSON.parse(localStorage.getItem('kema_negatives')) || [];
