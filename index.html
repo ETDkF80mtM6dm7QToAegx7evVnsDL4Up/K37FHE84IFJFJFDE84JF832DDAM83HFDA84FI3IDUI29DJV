@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Kema 🔥</title>
+<title>Kema Chef</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -171,32 +171,41 @@
         display: flex; align-items: center; justify-content: center;
     }
 
-    /* Cook Mode */
-    #cook-mode {
+    /* Cook Mode & Congrats */
+    #cook-mode, #congrats-mode {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: var(--card-bg); z-index: 5000; display: none;
         padding: 15px; flex-direction: column;
     }
+    
     .video-controls {
         display: flex; align-items: center; justify-content: center;
-        padding-bottom: 30px; margin-top: auto;
+        padding-bottom: 30px; margin-top: auto; flex-direction: column;
     }
-    .play-big { 
-        width: 80px; height: 80px; background: var(--primary); border-radius: 50%; 
+    
+    .action-big-btn { 
+        width: 90px; height: 90px; background: var(--primary); border-radius: 50%; 
         color: black; display: flex; align-items: center; justify-content: center; font-size: 2rem;
         box-shadow: 0 10px 30px rgba(255, 193, 7, 0.4); border: 4px solid #fff;
+        transition: 0.3s;
     }
+    .action-big-btn.timer-active {
+        background: var(--accent); color: white; box-shadow: 0 10px 30px rgba(255, 87, 34, 0.4);
+        animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
     .timer-display { font-size: 4rem; font-weight: 700; color: var(--accent); text-align: center; margin: 15px 0; }
     
-    .swipe-hint {
-        position: absolute; top: 50%; right: 20px; transform: translateY(-50%);
-        color: var(--primary); font-size: 2rem; opacity: 0; pointer-events: none;
+    .swipe-text {
+        color: var(--text-light); font-size: 0.9rem; margin-top: 15px; opacity: 0.7;
+        display: flex; align-items: center; gap: 10px;
     }
-    .swipe-hint.animate { animation: swipeRight 2s infinite; }
-    @keyframes swipeRight { 
-        0% { opacity: 0; transform: translate(0, -50%); } 
-        50% { opacity: 1; transform: translate(10px, -50%); } 
-        100% { opacity: 0; transform: translate(20px, -50%); } 
+    .swipe-text i { animation: slideRight 1.5s infinite; }
+    @keyframes slideRight { 
+        0% { transform: translateX(0); opacity: 0.5; } 
+        50% { transform: translateX(10px); opacity: 1; } 
+        100% { transform: translateX(0); opacity: 0.5; } 
     }
 
     #loader {
@@ -209,7 +218,7 @@
 
     #toast {
         visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center;
-        border-radius: 50px; padding: 12px 20px; position: fixed; z-index: 4000; left: 50%; bottom: 100px;
+        border-radius: 50px; padding: 12px 20px; position: fixed; z-index: 6000; left: 50%; bottom: 100px;
         transform: translateX(-50%); font-size: 0.9rem; opacity: 0; transition: opacity 0.3s;
     }
     #toast.show { visibility: visible; opacity: 1; }
@@ -238,7 +247,15 @@
     }
 
     .responsive-flex { display: flex; gap: 10px; margin-bottom: 15px; }
-    .word-highlight { background-color: var(--primary); color: black; border-radius: 4px; padding: 0 4px; }
+    
+    /* Congrats specific */
+    .congrats-img {
+        width: 150px; height: 150px; border-radius: 50%; object-fit: cover;
+        border: 5px solid var(--primary); margin: 0 auto 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
 </style>
 
 <script type="importmap">
@@ -274,15 +291,12 @@
     <div style="margin-top:20px; font-weight:bold; color:var(--text-light); font-size:1.2rem;" id="loader-text">Cooking...</div>
 </div>
 
+<!-- HOME VIEW -->
 <div id="view-home" class="view-section active">
     <div>
         <h1 class="hero-title">What's in your<br>kitchen?</h1>
         <p class="subtitle">Enter ingredients and let the ai cook for you!</p>
-        
-        <div class="input-group">
-            <textarea id="ingredientsInput" placeholder="e.g. Eggs, Flour, Spinach, Milk... or I need to bake bread without yeast or an oven"></textarea>
-        </div>
-
+        <div class="input-group"><textarea id="ingredientsInput" placeholder="e.g. Eggs, Flour, Spinach, Milk... or I need to bake bread with cheese"></textarea></div>
         <div class="responsive-flex">
             <div style="flex:1;">
                 <label class="input-label">Meal Type</label>
@@ -300,18 +314,15 @@
                 <input type="text" id="cuisineInputHome" placeholder="e.g. Italian">
             </div>
         </div>
-        
-        <button class="btn-primary btn-bounce" id="cookBtn">
-            <i class="fa-solid fa-fire-burner"></i> Cook
-        </button>
+        <button class="btn-primary btn-bounce" id="cookBtn"><i class="fa-solid fa-fire-burner"></i> Cook</button>
     </div>
-
     <div class="top-recipes-wrapper" id="topRecipesArea" style="display:none;">
         <label class="input-label" style="text-align:center; margin-bottom:10px;">Recent</label>
         <div class="top-recipes-list" id="topRecipesList"></div>
     </div>
 </div>
 
+<!-- SETTINGS VIEW -->
 <div id="view-settings" class="view-section">
     <h1 class="hero-title" style="margin-bottom:15px;">Kitchen Rules</h1>
     
@@ -322,6 +333,20 @@
                 <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
                 <span class="slider"></span>
             </label>
+        </div>
+    </div>
+
+    <!-- Music Selection -->
+    <div class="settings-card">
+        <div class="setting-row">
+            <label class="input-label"><i class="fa-solid fa-music"></i> Cooking Music</label>
+            <select id="musicSelect" onchange="changeMusic(this.value)">
+                <option value="0">Upbeat Pop</option>
+                <option value="1">Happy Vibes</option>
+                <option value="2">Funky Groove</option>
+                <option value="3">Summer Energy</option>
+                <option value="4">Chill Hop</option>
+            </select>
         </div>
     </div>
 
@@ -357,18 +382,13 @@
     </button>
 </div>
 
+<!-- RESULT VIEW -->
 <div id="view-result" class="view-section">
     <div id="resultContent"></div>
-    
     <div class="action-row">
-         <button class="round-btn btn-bounce" onclick="startCookMode()">
-            <i class="fa-solid fa-play" style="padding-left:4px;"></i>
-         </button>
-         <button class="round-btn btn-bounce" onclick="copyRecipeText()">
-            <i class="fa-solid fa-t"></i>
-         </button>
+         <button class="round-btn btn-bounce" onclick="startCookMode()"><i class="fa-solid fa-play" style="padding-left:4px;"></i></button>
+         <button class="round-btn btn-bounce" onclick="copyRecipeText()"><i class="fa-solid fa-t"></i></button>
     </div>
-
     <div class="settings-card" style="text-align:center;">
         <p style="font-weight:bold; margin-bottom:10px; font-size:1rem;">Rate Recipe</p>
         <div style="font-size:2rem; color:#ddd; cursor:pointer; margin-bottom:15px;" id="starContainer">
@@ -385,15 +405,16 @@
     </div>
 </div>
 
+<!-- HISTORY VIEW -->
 <div id="view-history" class="view-section">
     <h1 class="hero-title">Cookbook</h1>
     <div id="historyList"></div>
 </div>
 
-<!-- Cook Mode -->
+<!-- COOK MODE -->
 <div id="cook-mode">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-        <h2 style="font-family:'Playfair Display',serif; font-size:1.6rem;">Chef Bot</h2>
+        <h2 style="font-family:'Playfair Display',serif; font-size:1.6rem;">Cook with recipe</h2>
         <div id="closeCookBtn" style="padding:15px; cursor:pointer;">
              <i class="fa-solid fa-xmark" style="font-size:2rem;"></i>
         </div>
@@ -408,16 +429,37 @@
         
         <div id="cm-timer-box" style="display:none; width:100%;">
             <div class="timer-display" id="cm-timer">00:00</div>
-            <div style="color:var(--text-light); font-size:1rem;">Timer Auto-Start</div>
-        </div>
-
-        <div class="swipe-hint" id="swipeHint">
-            <i class="fa-solid fa-hand-point-right"></i>
+            <div style="color:var(--text-light); font-size:1rem; font-weight:bold; color:var(--accent);">Step Requires Timer</div>
         </div>
     </div>
 
     <div class="video-controls">
-        <button class="play-big btn-bounce" onclick="togglePlay()" id="playBtn"><i class="fa-solid fa-play" style="margin-left:5px;"></i></button>
+        <button class="action-big-btn btn-bounce" onclick="handleBigButton()" id="bigBtn">
+            <i class="fa-solid fa-play" style="margin-left:5px;"></i>
+        </button>
+        <div class="swipe-text">Swipe to see more <i class="fa-solid fa-chevron-right"></i></div>
+    </div>
+</div>
+
+<!-- CONGRATS SCREEN -->
+<div id="congrats-mode">
+    <div style="display:flex; justify-content:flex-end; padding:15px;">
+        <i class="fa-solid fa-xmark" style="font-size:2rem; cursor:pointer;" onclick="closeCongrats()"></i>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+        <h1 class="hero-title" style="margin-bottom:20px;">Bon Appétit!</h1>
+        <img id="congrats-img" class="congrats-img" src="">
+        <p style="margin-bottom:30px; font-size:1.2rem; color:var(--text-light);">You did it! How does it taste?</p>
+        
+        <div style="font-size:2.5rem; color:#ddd; cursor:pointer; margin-bottom:30px; display:flex; gap:10px;">
+            <i class="fa-solid fa-star" onclick="rateCongrats(1)"></i>
+            <i class="fa-solid fa-star" onclick="rateCongrats(2)"></i>
+            <i class="fa-solid fa-star" onclick="rateCongrats(3)"></i>
+            <i class="fa-solid fa-star" onclick="rateCongrats(4)"></i>
+            <i class="fa-solid fa-star" onclick="rateCongrats(5)"></i>
+        </div>
+
+        <button class="btn-primary" onclick="closeCongrats()">Back to Recipe</button>
     </div>
 </div>
 
@@ -441,45 +483,43 @@
     let stepIndex = 0;
     let timerInterval = null;
     let audioPlayer = new Audio();
-    let bgMusic = new Audio('https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3'); // Free calm acoustic loop
+    
+    // Upbeat Music List
+    const tunes = [
+        "https://cdn.pixabay.com/audio/2023/10/24/audio_34b0754899.mp3", // Upbeat Pop
+        "https://cdn.pixabay.com/audio/2022/10/05/audio_6861212515.mp3", // Happy
+        "https://cdn.pixabay.com/audio/2023/04/13/audio_82c2196692.mp3", // Funky
+        "https://cdn.pixabay.com/audio/2022/03/10/audio_c36316279f.mp3", // Summer
+        "https://cdn.pixabay.com/audio/2022/01/18/audio_d0a13f69d2.mp3"  // Chill Hop
+    ];
+    let currentMusicIndex = parseInt(localStorage.getItem('kema_music_idx')) || 0;
+    let bgMusic = new Audio(tunes[currentMusicIndex]);
     bgMusic.loop = true;
-    bgMusic.volume = 0.2; // Low background volume
+    bgMusic.volume = 0.3;
 
     // Swipe Logic
     let touchStartX = 0;
     let touchEndX = 0;
     const cookModeBox = document.getElementById('cook-mode');
 
-    cookModeBox.addEventListener('touchstart', e => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, false);
-
+    cookModeBox.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
     cookModeBox.addEventListener('touchend', e => {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
     }, false);
 
     function handleSwipe() {
-        if (touchEndX < touchStartX - 50) {
-            navStep(1); // Swipe Left -> Next
-        }
-        if (touchEndX > touchStartX + 50) {
-            navStep(-1); // Swipe Right -> Prev
-        }
+        if (touchEndX < touchStartX - 50) navStep(1); // Next
+        if (touchEndX > touchStartX + 50) navStep(-1); // Prev
     }
 
-    // Webview safe close
-    document.getElementById('closeCookBtn').addEventListener('click', () => {
-        closeCookMode();
-    });
+    document.getElementById('closeCookBtn').addEventListener('click', closeCookMode);
 
     window.switchView = (id) => {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        
         document.getElementById('nav-hist').className = id === 'view-history' ? 'nav-item active' : 'nav-item';
         document.getElementById('nav-set').className = id === 'view-settings' ? 'nav-item active' : 'nav-item';
-
         if(id === 'view-home') renderTop3();
         if(id === 'view-history') renderHistory();
     };
@@ -490,104 +530,64 @@
         setTimeout(() => t.classList.remove("show"), 3000);
     };
 
+    // Music Settings
+    window.changeMusic = (idx) => {
+        currentMusicIndex = idx;
+        localStorage.setItem('kema_music_idx', idx);
+        bgMusic.src = tunes[idx];
+    };
+    document.getElementById('musicSelect').value = currentMusicIndex;
+
     const loadWords = ["Chopping...", "Sautéing...", "Simmering...", "Plating...", "Seasoning...", "Tasting..."];
     let loadInt;
 
     document.getElementById('cookBtn').addEventListener('click', async () => {
         const ing = document.getElementById('ingredientsInput').value.trim();
         if(!ing) return showToast("Please enter ingredients!");
-
         const meal = document.getElementById('mealType').value;
-        const cuisine = document.getElementById('cuisineInputHome').value || document.getElementById('cuisineInputSettings').value || "Any";
-        const diet = document.getElementById('dietSelect').value;
-        const equip = document.getElementById('equipInput').value;
-        const allergy = document.getElementById('allergyInput').value;
+        const cuisine = document.getElementById('cuisineInputHome').value || "Any";
         
         document.getElementById('loader').style.display = 'flex';
         let widx = 0;
-        loadInt = setInterval(() => {
-            document.getElementById('loader-text').innerText = loadWords[widx++ % loadWords.length];
-        }, 800);
+        loadInt = setInterval(() => { document.getElementById('loader-text').innerText = loadWords[widx++ % loadWords.length]; }, 800);
 
-        const negativeStr = negatives.length ? `Do NOT make recipes similar to: ${negatives.join(', ')}.` : '';
-
-        const prompt = `
-            Role: Master Chef Bot (Kema).
-            Task: Create a ${meal} recipe (Cuisine: ${cuisine}).
-            Ingredients: ${ing}.
-            Constraints: Diet=${diet}, Equipment=${equip}, Allergies=${allergy}.
-            ${negativeStr}
-            
-            SAFETY: If ingredients contain drugs, hardware, chemicals, or non-food items, return JSON: {"error": "unsafe"}.
-            
-            FORMAT: Strictly JSON.
-            JSON Structure:
-            {
-                "title": "String",
-                "description": "Short appetizing text",
-                "calories": Number,
-                "health_score": Number (0-100),
-                "prep_time": "String (e.g. 15m)",
-                "servings": "String (e.g. 2 ppl)",
-                "portion_size": "String (e.g. 1 bowl)",
-                "nutrients": {"protein": "0g", "carbs": "0g", "fat": "0g"},
-                "ingredients": [{"name": "Item", "qty": "Amount", "missing": false}],
-                "steps": [{"text": "Instruction sentence.", "timer_sec": 0}]
-            }
-        `;
+        const prompt = `Role: Chef Kema. Task: ${meal} recipe (Cuisine: ${cuisine}). Ingredients: ${ing}. JSON Format: { "title": "", "description": "", "calories": 0, "health_score": 0, "prep_time": "", "servings": "", "portion_size": "", "nutrients": {"protein": "", "carbs": "", "fat": ""}, "ingredients": [{"name": "", "qty": "", "missing": false}], "steps": [{"text": "", "timer_sec": 0}] }. Safe ingredients only.`;
 
         try {
             const result = await model.generateContent(prompt);
-            const text = result.response.text().replace(/```json|```/g, '').trim();
-            const data = JSON.parse(text);
-
-            if(data.error) throw new Error("Unsafe ingredients detected.");
+            const data = JSON.parse(result.response.text().replace(/```json|```/g, '').trim());
+            if(data.error) throw new Error("Unsafe");
 
             clearInterval(loadInt);
-            document.getElementById('loader-text').innerText = "Plating up...";
-
-            const imgPrompt = `gourmet dish ${data.title} ${cuisine} hyper-realistic 8k professional food photography cinematic lighting ingredients ${data.ingredients.map(i=>i.name).join(' ')}`;
-            const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imgPrompt)}?width=800&height=600&nologo=true&seed=${Date.now()}`;
-
-            const img = new Image();
-            img.src = imgUrl;
-            await new Promise(r => { img.onload = r; img.onerror = r; });
-
-            data.image = imgUrl;
-            data.id = Date.now();
-            data.rating = 0;
-
-            currentRecipe = data;
-            saveRecipe(data);
-            renderResult(data);
+            document.getElementById('loader-text').innerText = "Plating...";
+            const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(data.title + ' gourmet food')}?width=800&height=600&nologo=true&seed=${Date.now()}`;
+            await new Promise(r => { let i = new Image(); i.src=imgUrl; i.onload=r; i.onerror=r; });
+            
+            data.image = imgUrl; data.id = Date.now(); data.rating = 0;
+            currentRecipe = data; saveRecipe(data); renderResult(data);
             
             document.getElementById('loader').style.display = 'none';
             switchView('view-result');
-
         } catch (e) {
             clearInterval(loadInt);
             document.getElementById('loader').style.display = 'none';
-            showToast(e.message.includes("Unsafe") ? "Unsafe ingredients rejected!" : "Error generating recipe.");
+            showToast("Error generating recipe.");
         }
     });
 
     function renderResult(data) {
-        const html = `
+        document.getElementById('resultContent').innerHTML = `
             <div class="recipe-header">
                 <img src="${data.image}" class="recipe-img">
-                
                 <div class="recipe-info-container">
                     <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; line-height:1.2;">${data.title}</h1>
                     <p style="color:var(--text-light); margin-top:5px; font-size:1rem;">${data.description}</p>
-                    
                     <div class="meta-grid">
                         <div class="meta-item"><i class="fa-regular fa-clock"></i>${data.prep_time}</div>
                         <div class="meta-item"><i class="fa-solid fa-user-group"></i>${data.servings}</div>
-                        <div class="meta-item"><i class="fa-solid fa-bowl-food"></i>${data.portion_size}</div>
                     </div>
-
                     <div class="meter-container" onclick="openNutri()">
-                        <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                         <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
                             <span>${data.calories} kcal</span>
                             <span style="font-weight:bold; color:var(--primary-dark);">${data.health_score}/100 Health</span>
                         </div>
@@ -595,109 +595,39 @@
                     </div>
                 </div>
             </div>
-
             <div class="settings-card">
                 <h3 style="margin-bottom:15px; font-size:1.2rem;">Ingredients</h3>
-                ${data.ingredients.map((ing, i) => `
-                    <div class="ing-item">
-                        <div class="ing-pencil" onclick="toggleIng(this)"><i class="fa-solid fa-pencil"></i></div>
-                        <div class="ing-text"><b>${ing.qty}</b> ${ing.name}</div>
-                    </div>
-                `).join('')}
-                <button class="btn-primary" id="regenBtn" style="display:none; margin-top:15px; background:var(--accent); color:white; font-size:1rem;" onclick="regenMissing()">
-                    Regenerate without marked
-                </button>
+                ${data.ingredients.map(i => `<div class="ing-item"><div class="ing-text"><b>${i.qty}</b> ${i.name}</div></div>`).join('')}
             </div>
-
             <div class="settings-card">
                 <h3 style="margin-bottom:15px; font-size:1.2rem;">Instructions</h3>
-                ${data.steps.map((s, i) => `
-                    <div class="step-card">
-                        <div style="font-weight:bold; color:var(--primary-dark); margin-bottom:5px; font-size:0.9rem;">STEP ${i+1}</div>
-                        <div class="step-text">${marked.parseInline(s.text)}</div>
-                        ${s.timer_sec > 0 ? `<div style="margin-top:10px; font-weight:bold; color:var(--text-light); font-size:1rem;"><i class="fa-regular fa-clock"></i> ${s.timer_sec}s Timer</div>` : ''}
-                    </div>
-                `).join('')}
+                ${data.steps.map((s, i) => `<div class="step-card"><div style="font-weight:bold; color:var(--primary-dark);">STEP ${i+1}</div><div class="step-text">${s.text}</div>${s.timer_sec>0?`<div style="margin-top:5px; font-weight:bold; color:var(--accent);"><i class="fa-solid fa-stopwatch"></i> ${s.timer_sec}s Timer</div>`:''}</div>`).join('')}
             </div>
         `;
-        document.getElementById('resultContent').innerHTML = html;
-        
-        if(data.rating) {
-            const stars = document.querySelectorAll('#starContainer i');
-            stars.forEach((s, i) => s.style.color = i < data.rating ? "gold" : "#ddd");
-        } else {
-            document.querySelectorAll('#starContainer i').forEach(el => el.style.color = "#ddd");
-        }
+        document.getElementById('starContainer').innerHTML = [1,2,3,4,5].map(i => `<i class="fa-solid fa-star" onclick="rate(${i})" style="color:${i<=data.rating?'gold':'#ddd'}"></i>`).join('');
     }
-
-    window.openNutri = () => {
-        if(!currentRecipe) return;
-        const n = currentRecipe.nutrients;
-        document.getElementById('nutriContent').innerHTML = `
-            <div class="nutri-row" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;"><span>Calories</span><b>${currentRecipe.calories}</b></div>
-            <div class="nutri-row" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;"><span>Protein</span><b>${n.protein}</b></div>
-            <div class="nutri-row" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;"><span>Carbs</span><b>${n.carbs}</b></div>
-            <div class="nutri-row" style="display:flex; justify-content:space-between; padding:10px 0;"><span>Fat</span><b>${n.fat}</b></div>
-        `;
-        document.getElementById('nutriModal').style.display = 'flex';
-    };
-
-    window.toggleIng = (el) => {
-        el.classList.toggle('active');
-        el.nextElementSibling.classList.toggle('ing-missing');
-        const any = document.querySelectorAll('.ing-pencil.active').length > 0;
-        document.getElementById('regenBtn').style.display = any ? 'flex' : 'none';
-    };
-
-    window.regenMissing = () => {
-        const checks = document.querySelectorAll('.ing-pencil.active');
-        const missing = Array.from(checks).map(c => c.nextElementSibling.innerText);
-        const base = document.getElementById('ingredientsInput').value;
-        document.getElementById('ingredientsInput').value = `${base} (EXCLUDE: ${missing.join(', ')})`;
-        switchView('view-home');
-        document.getElementById('cookBtn').click();
-    };
-
-    window.rate = (n) => {
-        currentRecipe.rating = n;
-        saveRecipesToStore();
-        const stars = document.querySelectorAll('#starContainer i');
-        stars.forEach((s, i) => s.style.color = i < n ? "gold" : "#ddd");
-        showToast(`Rated ${n} Stars`);
-    };
-
-    window.thumbsUp = () => {
-        showToast("Glad you liked it!");
-    };
-    
-    window.thumbsDown = () => {
-        if(!negatives.includes(currentRecipe.title)) {
-            negatives.push(currentRecipe.title);
-            localStorage.setItem('kema_negatives', JSON.stringify(negatives));
-        }
-        showToast("We won't suggest this again.");
-    };
 
     window.startCookMode = () => {
         stepIndex = 0;
         document.getElementById('cook-mode').style.display = 'flex';
-        bgMusic.play().catch(e => console.log("Music play blocked", e));
+        bgMusic.play().catch(e=>console.log(e));
         updateCookStep();
     };
 
     window.closeCookMode = () => {
-        audioPlayer.pause();
-        bgMusic.pause();
-        isSpeaking = false;
-        clearInterval(timerInterval);
+        audioPlayer.pause(); bgMusic.pause();
+        isSpeaking = false; clearInterval(timerInterval);
         document.getElementById('cook-mode').style.display = 'none';
     };
 
     window.navStep = (d) => {
-        audioPlayer.pause();
-        isSpeaking = false;
-        document.getElementById('playBtn').innerHTML = '<i class="fa-solid fa-play" style="margin-left:5px;"></i>';
-        stepIndex = Math.max(0, Math.min(stepIndex + d, currentRecipe.steps.length - 1));
+        audioPlayer.pause(); isSpeaking = false;
+        let next = stepIndex + d;
+        if(next >= currentRecipe.steps.length) {
+            showCongrats();
+            return;
+        }
+        stepIndex = Math.max(0, next);
         updateCookStep();
     };
 
@@ -706,154 +636,106 @@
         document.getElementById('cm-step-num').innerText = (stepIndex + 1).toString().padStart(2, '0');
         document.getElementById('cm-text').innerText = step.text;
         
-        // Hint Animation logic
-        const hint = document.getElementById('swipeHint');
-        if(stepIndex === 0) {
-            hint.style.opacity = '1';
-            hint.classList.add('animate');
-            setTimeout(() => { hint.style.opacity = '0'; hint.classList.remove('animate'); }, 3000);
-        } else {
-            hint.style.opacity = '0';
-        }
-
+        const btn = document.getElementById('bigBtn');
         const timerBox = document.getElementById('cm-timer-box');
+
+        // Logic: If Timer Exists, Big Button = Timer. Else, Big Button = TTS.
         if(step.timer_sec > 0) {
             timerBox.style.display = 'block';
             document.getElementById('cm-timer').innerText = formatTime(step.timer_sec);
             timerBox.dataset.sec = step.timer_sec;
             timerBox.dataset.active = "false";
+            timerBox.dataset.orig = step.timer_sec;
+            
+            btn.innerHTML = '<i class="fa-solid fa-stopwatch" style="font-size:1.5rem;"></i>';
+            btn.style.background = "#fff";
+            btn.style.color = "#000";
         } else {
             timerBox.style.display = 'none';
-            timerBox.dataset.sec = 0;
+            btn.innerHTML = '<i class="fa-solid fa-volume-high" style="font-size:1.5rem;"></i>';
+            btn.style.background = "var(--primary)";
+            btn.style.color = "#000";
         }
         clearInterval(timerInterval);
+        btn.classList.remove('timer-active');
     }
 
-    window.togglePlay = () => {
-        const btn = document.getElementById('playBtn');
+    window.handleBigButton = () => {
+        const step = currentRecipe.steps[stepIndex];
+        if(step.timer_sec > 0) {
+            toggleTimer();
+        } else {
+            toggleTTS();
+        }
+    };
+
+    function toggleTTS() {
         if(isSpeaking) {
-            audioPlayer.pause();
-            isSpeaking = false;
-            btn.innerHTML = '<i class="fa-solid fa-play" style="margin-left:5px;"></i>';
+            audioPlayer.pause(); isSpeaking=false;
         } else {
-            isSpeaking = true;
-            btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-            const text = currentRecipe.steps[stepIndex].text;
-            
-            // Using StreamElements Free TTS API (No Key Required, returns MP3)
-            const safeText = encodeURIComponent(text);
-            audioPlayer.src = `https://api.streamelements.com/kappa/v2/speech?voice=En_US&text=${safeText}`;
+            isSpeaking=true;
+            const text = encodeURIComponent(currentRecipe.steps[stepIndex].text);
+            audioPlayer.src = `https://api.streamelements.com/kappa/v2/speech?voice=En_US&text=${text}`;
             audioPlayer.play();
-
-            audioPlayer.onended = () => {
-                isSpeaking = false;
-                btn.innerHTML = '<i class="fa-solid fa-play" style="margin-left:5px;"></i>';
-                // Auto Start Timer if exists
-                const timerBox = document.getElementById('cm-timer-box');
-                if(timerBox.dataset.sec > 0) {
-                    startTimer();
-                }
-            };
+            audioPlayer.onended = () => isSpeaking=false;
         }
-    };
+    }
 
-    window.toggleTimer = () => {
-        const timerBox = document.getElementById('cm-timer-box');
-        if(timerBox.dataset.active === "true") {
+    function toggleTimer() {
+        const box = document.getElementById('cm-timer-box');
+        const btn = document.getElementById('bigBtn');
+        
+        if(box.dataset.active === "true") {
             clearInterval(timerInterval);
-            timerBox.dataset.active = "false";
+            box.dataset.active = "false";
+            btn.classList.remove('timer-active');
+            btn.innerHTML = '<i class="fa-solid fa-play"></i>';
         } else {
-            startTimer();
+            box.dataset.active = "true";
+            btn.classList.add('timer-active');
+            btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+            let t = parseInt(box.dataset.sec);
+            
+            timerInterval = setInterval(() => {
+                t--; box.dataset.sec = t;
+                document.getElementById('cm-timer').innerText = formatTime(t);
+                if(t<=0) {
+                    clearInterval(timerInterval);
+                    box.dataset.active = "false";
+                    btn.classList.remove('timer-active');
+                    showToast("Timer Done!");
+                    bgMusic.pause(); // Pause music for alert
+                    new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
+                }
+            }, 1000);
         }
+    }
+
+    function showCongrats() {
+        closeCookMode();
+        document.getElementById('congrats-img').src = currentRecipe.image;
+        document.getElementById('congrats-mode').style.display = 'flex';
+        // Reset stars in congrats
+        Array.from(document.querySelectorAll('#congrats-mode .fa-star')).forEach(s=>s.style.color="#ddd");
+    }
+
+    window.closeCongrats = () => document.getElementById('congrats-mode').style.display = 'none';
+
+    window.rateCongrats = (n) => {
+        rate(n);
+        const stars = document.querySelectorAll('#congrats-mode .fa-star');
+        stars.forEach((s, i) => s.style.color = i < n ? "gold" : "#ddd");
     };
 
-    function startTimer() {
-        const timerBox = document.getElementById('cm-timer-box');
-        timerBox.dataset.active = "true";
-        let t = parseInt(timerBox.dataset.sec);
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            t--;
-            timerBox.dataset.sec = t;
-            document.getElementById('cm-timer').innerText = formatTime(t);
-            if(t<=0) { 
-                clearInterval(timerInterval); 
-                timerBox.dataset.active = "false";
-                showToast("Timer Done!"); 
-            }
-        }, 1000);
-    }
+    // Utils
+    function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+    function saveRecipe(data) { recipes.unshift(data); if(recipes.length>20) recipes.pop(); localStorage.setItem('kema_recipes', JSON.stringify(recipes)); }
+    window.rate = (n) => { currentRecipe.rating = n; saveRecipe(currentRecipe); showToast(`Rated ${n} Stars`); };
+    window.copyRecipeText = () => { if(!currentRecipe) return; let t = `${currentRecipe.title}\n\n`; currentRecipe.ingredients.forEach(i=>t+=`- ${i.qty} ${i.name}\n`); currentRecipe.steps.forEach((s,x)=>t+=`${x+1}. ${s.text}\n`); navigator.clipboard.writeText(t).then(()=>showToast("Copied!")); };
 
-    function formatTime(s) {
-        return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
-    }
-
-    function saveRecipe(data) {
-        recipes.unshift(data);
-        if(recipes.length > 20) recipes.pop();
-        saveRecipesToStore();
-    }
-    function saveRecipesToStore() { localStorage.setItem('kema_recipes', JSON.stringify(recipes)); }
-
-    function renderTop3() {
-        const area = document.getElementById('topRecipesArea');
-        if(!recipes.length) { area.style.display = 'none'; return; }
-        area.style.display = 'block';
-        
-        const list = document.getElementById('topRecipesList');
-        list.innerHTML = recipes.slice(0, 3).map((r, i) => `
-            <div class="top-bubble" onclick="loadHistRecipe(${r.id})">
-                <img src="${r.image}">
-                <span>${i+1}</span>
-            </div>
-        `).join('');
-    }
-
-    function renderHistory() {
-        const list = document.getElementById('historyList');
-        if(!recipes.length) return list.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px;'>No recipes yet.</p>";
-        list.innerHTML = recipes.map(r => `
-            <div class="settings-card" style="display:flex; gap:15px; align-items:center;" onclick="loadHistRecipe(${r.id})">
-                <img src="${r.image}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;">
-                <div style="flex:1;">
-                    <div style="font-weight:bold; font-size:1.1rem; margin-bottom:5px;">${r.title}</div>
-                    <div style="font-size:0.85rem; color:#999;">${new Date(r.id).toLocaleDateString()}</div>
-                </div>
-                <i class="fa-solid fa-chevron-right" style="color:#ccc;"></i>
-            </div>
-        `).join('');
-    }
-
-    window.loadHistRecipe = (id) => {
-        currentRecipe = recipes.find(r => r.id === id);
-        renderResult(currentRecipe);
-        switchView('view-result');
-    };
-
-    window.toggleDarkMode = () => {
-        const isDark = document.getElementById('darkModeToggle').checked;
-        document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
-        localStorage.setItem('kema_dark', isDark);
-    };
-
-    window.openConfirm = () => document.getElementById('confirmModal').style.display = 'flex';
-    window.closeConfirm = () => document.getElementById('confirmModal').style.display = 'none';
-    window.performDelete = () => { localStorage.clear(); location.reload(); };
-
-    window.copyRecipeText = () => {
-        if(!currentRecipe) return;
-        let text = `${currentRecipe.title}\n\nINGREDIENTS:\n`;
-        currentRecipe.ingredients.forEach(i => text += `- ${i.qty} ${i.name}\n`);
-        text += `\nINSTRUCTIONS:\n`;
-        currentRecipe.steps.forEach((s, i) => text += `${i+1}. ${s.text}\n`);
-        
-        navigator.clipboard.writeText(text).then(() => showToast("Recipe Copied!"));
-    };
-
-    const savedDark = localStorage.getItem('kema_dark') === 'true';
-    document.getElementById('darkModeToggle').checked = savedDark;
-    if(savedDark) document.body.setAttribute('data-theme', 'dark');
-    
+    // Init
+    window.openNutri = () => { if(currentRecipe) { const n=currentRecipe.nutrients; document.getElementById('nutriContent').innerHTML=`<div class="nutri-row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee"><span>Protein</span><b>${n.protein}</b></div><div class="nutri-row" style="display:flex;justify-content:space-between;padding:10px 0;"><span>Carbs</span><b>${n.carbs}</b></div>`; document.getElementById('nutriModal').style.display='flex'; }};
+    const savedDark = localStorage.getItem('kema_dark') === 'true'; document.getElementById('darkModeToggle').checked = savedDark; if(savedDark) document.body.setAttribute('data-theme', 'dark');
     renderTop3();
 </script>
 </body>
